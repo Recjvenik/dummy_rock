@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: ailab
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn ailab.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.11"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: USE_DB
+        value: postgres
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_DEFAULT_REGION
+        value: ap-south-1
+      - key: BEDROCK_MODEL_ID
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
