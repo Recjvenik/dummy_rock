@@ -2,9 +2,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
 from users import views as user_views
 
 urlpatterns = [
+    path('health/', lambda r: JsonResponse({'status': 'ok'})),
     path('admin/', admin.site.urls),
     path('login/', user_views.login_page, name='login'),
     path('register/', user_views.register_page, name='register'),
