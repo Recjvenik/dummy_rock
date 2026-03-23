@@ -87,13 +87,25 @@ CHANNEL_LAYERS = {
     }
 }
 
-# Database - SQLite for local dev
-DATABASES = {
-    'default': {
-        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': BASE_DIR / os.environ.get('DB_NAME', 'ailab_db'),
+# Database - toggle via USE_DB env var: "postgres" or "sqlite"
+if os.environ.get('USE_DB', 'sqlite') == 'postgres':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'postgres'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'ailab_db',
+        }
+    }
 
 # Auth
 AUTH_USER_MODEL = 'users.CustomUser'
