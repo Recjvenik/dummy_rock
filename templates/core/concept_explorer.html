@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}Concept Explorer — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.explorer-hero { margin-bottom: 48px; }
+.explorer-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.explorer-hero h1 span {
+background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.explorer-grid {
+display: grid;
+grid-template-columns: 1fr 340px;
+gap: 40px;
+}
+
+.concept-cloud-container {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 32px;
+padding: 60px;
+min-height: 500px;
+position: relative;
+box-shadow: inset 0 0 100px rgba(0,0,0,0.2);
+}
+
+.cloud-mask {
+display: flex;
+flex-wrap: wrap;
+gap: 12px;
+justify-content: center;
+}
+
+.concept-node-premium {
+padding: 12px 24px;
+background: rgba(255, 255, 255, 0.02);
+border: 1px solid var(--border);
+border-radius: 100px;
+font-size: 14px;
+font-weight: 700;
+color: var(--text-secondary);
+cursor: pointer;
+transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+position: relative;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.concept-node-premium:hover {
+background: rgba(0, 255, 136, 0.05);
+border-color: var(--accent-green);
+color: var(--text-primary);
+transform: scale(1.1);
+z-index: 10;
+box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.concept-node-premium.active {
+background: var(--accent-green);
+color: #000;
+border-color: var(--accent-green);
+box-shadow: 0 0 40px rgba(0, 255, 136, 0.3);
+}
+
+.node-pop {
+width: 20px;
+height: 20px;
+background: rgba(0,0,0,0.1);
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 10px;
+font-weight: 800;
+}
+
+.detail-panel {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 24px;
+padding: 32px;
+position: sticky;
+top: 40px;
+height: fit-content;
+display: none;
+animation: slideInRight 0.4s ease;
+}
+
+.detail-panel.active { display: block; }
+
+.module-strip {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px;
+background: var(--bg-secondary);
+border: 1px solid var(--border);
+border-radius: 12px;
+text-decoration: none;
+color: var(--text-secondary);
+font-size: 13px;
+font-weight: 600;
+margin-bottom: 8px;
+transition: all 0.2s;
+}
+
+.module-strip:hover {
+border-color: var(--accent-blue);
+color: var(--text-primary);
+background: rgba(77, 150, 255, 0.05);
+}
+
+.filter-pills {
+display: flex;
+gap: 8px;
+margin-bottom: 32px;
+}
+
+.filter-pill {
+padding: 8px 18px;
+border-radius: 100px;
+background: var(--bg-card);
+border: 1px solid var(--border);
+color: var(--text-secondary);
+font-size: 12px;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.2s;
+}
+
+.filter-pill.active {
+background: rgba(77, 150, 255, 0.1);
+border-color: var(--accent-blue);
+color: var(--accent-blue);
+}
+
+@keyframes slideInRight {
+from { opacity: 0; transform: translateX(20px); }
+to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-width: 1000px) {
+.explorer-grid { grid-template-columns: 1fr; }
+.detail-panel { position: static; margin-top: 24px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="explorer-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>Concept Explorer</span>
+    </div>
+    <h1>Knowledge<br><span>Cloud Explorer</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Every concept in AI is
+        connected. Explore the threads that bind the curriculum together.</p>
+</div>
+
+<div class="filter-pills">
+    <button class="filter-pill active" onclick="filterCloud('all', this)">All Concepts</button>
+    <button class="filter-pill" onclick="filterCloud(2, this)">Highly Connected (2+)</button>
+    <button class="filter-pill" onclick="filterCloud(4, this)">Core Pillars (4+)</button>
+</div>
+
+<div class="explorer-grid">
+    <div class="concept-cloud-container">
+        <div class="cloud-mask" id="cloud-mask">
+            {% for concept in concepts %}
+            <div class="concept-node-premium" data-name="{{ concept.name }}"
+                data-modules="{% for m in concept.modules.all %}{{ m.slug }},{{ m.title }},{{ m.icon }};{% endfor %}"
+                data-count="{{ concept.modules.count }}" onclick="focusNode(this)">
+                <span>{{ concept.name }}</span>
+                {% if concept.modules.count > 0 %}
+                <span class="node-pop">{{ concept.modules.count }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <aside class="detail-panel" id="detail-panel">
+        <div
+            style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px;">
+            Concept Focus</div>
+        <h2 id="focus-title" style="font-size:28px; font-weight:800; margin-bottom:16px; letter-spacing:-0.02em;">
+            Concept Name</h2>
+        <p id="focus-desc" style="font-size:14px; color:var(--text-secondary); line-height:1.6; margin-bottom:32px;">
+            Select a concept from the cloud to see its connections across the curriculum.</p>
+
+        <div
+            style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:16px;">
+            Connected Modules</div>
+        <div id="module-list">
+            <!-- Dynamic links -->
+        </div>
+    </aside>
+</div>
+
+<div
+    style="margin-top:80px; text-align:center; padding:60px; background:rgba(255,255,255,0.01); border-radius:32px; border:1px solid var(--border);">
+    <div style="font-size:40px; margin-bottom:20px;">🧠</div>
+    <h3 style="font-size:24px; font-weight:800; margin-bottom:12px;">Deepen Your Understanding</h3>
+    <p style="color:var(--text-secondary); max-width:600px; margin:0 auto 24px;">The explorer helps you find
+        "Cross-Curricular" links. For example, learning about <strong>Probability</strong> in Math module directly helps
+        you in <strong>Machine Learning</strong>.</p>
+    <a href="/learning-paths/" class="btn btn-primary" style="padding:14px 28px;">View Guided Paths →</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function focusNode(el) {
+        document.querySelectorAll('.concept-node-premium').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+
+        const panel = document.getElementById('detail-panel');
+        const title = document.getElementById('focus-title');
+        const desc = document.getElementById('focus-desc');
+        const list = document.getElementById('module-list');
+
+        title.textContent = el.dataset.name;
+        desc.textContent = `This core concept is integrated into ${el.dataset.count} distinct module(s). It represents a fundamental building block of Artificial Intelligence.`;
+
+        list.innerHTML = '';
+        const modules = el.dataset.modules.split(';').filter(m => m.trim());
+        modules.forEach(m => {
+            const [slug, mtitle, icon] = m.split(',');
+            const link = document.createElement('a');
+            link.href = `/learn/${slug}/`;
+            link.className = 'module-strip';
+            link.innerHTML = `<span>${icon || '📚'}</span> <span>${mtitle}</span>`;
+            list.appendChild(link);
+        });
+
+        panel.classList.add('active');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function filterCloud(min, btn) {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.concept-node-premium').forEach(node => {
+            const count = parseInt(node.dataset.count || 0);
+            if (min === 'all' || count >= min) {
+                node.style.display = 'flex';
+            } else {
+                node.style.display = 'none';
+            }
+        });
+    }
+
+    // Init with first node if exists
+    window.onload = () => {
+        const first = document.querySelector('.concept-node-premium');
+        if (first) focusNode(first);
+    }
+</script>
+{% endblock %}

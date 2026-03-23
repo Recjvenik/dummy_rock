@@ -1,0 +1,799 @@
+{% extends "base.html" %}
+{% block title %}Python Editor — AI Lab{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<style>
+.editor-page-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+}
+.editor-page-header .icon {
+    font-size: 44px;
+    line-height: 1;
+}
+.editor-page-header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+.editor-page-header h1 span {
+    background: linear-gradient(135deg, #ffd93d, #ff6b35);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.editor-page-header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* Main layout */
+.editor-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr 1fr;
+    gap: 20px;
+    height: calc(100vh - 220px);
+    min-height: 520px;
+}
+
+/* Sidebar */
+.examples-sidebar {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.sidebar-title {
+    padding: 16px 16px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+}
+.example-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    line-height: 1.4;
+}
+.example-btn:hover, .example-btn.active {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+.example-btn .ex-icon {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+.example-btn .ex-label {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-primary);
+}
+.example-btn .ex-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Editor pane */
+.editor-pane {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+}
+.pane-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pane-title .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+}
+.pane-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-run {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 18px;
+    background: linear-gradient(135deg, #ffd93d, #ff6b35);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+}
+.btn-run:hover { opacity: 0.9; transform: scale(1.02); }
+.btn-run:active { transform: scale(0.98); }
+.btn-run:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-icon-sm {
+    padding: 7px 10px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: 'Inter', sans-serif;
+}
+.btn-icon-sm:hover { background: var(--border); color: var(--text-primary); }
+
+.shortcut-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* CodeMirror overrides */
+.CodeMirror {
+    height: 100% !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 14px !important;
+    line-height: 1.7 !important;
+    background: #1a1a26 !important;
+}
+.CodeMirror-scroll { height: 100%; }
+.cm-wrapper {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Output pane */
+.output-pane {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.output-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    background: #0f0f1a;
+}
+.output-placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 20px 0;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+}
+.output-line { white-space: pre-wrap; word-break: break-word; }
+.output-line.stdout { color: #e8e8f0; }
+.output-line.stderr { color: #ff6b6b; }
+.output-line.info   { color: #ffd93d; }
+.output-line.success { color: #00ff88; }
+.output-line.separator {
+    color: var(--border);
+    border-top: 1px solid var(--border);
+    margin: 8px 0;
+    padding-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Status bar */
+.status-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+.status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    display: inline-block;
+}
+.status-dot.ready { background: #00ff88; }
+.status-dot.running { background: #ffd93d; animation: pulse 1s infinite; }
+.status-dot.error { background: #ff4d6d; }
+
+/* Loading overlay */
+.pyodide-loading {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 15, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    gap: 20px;
+    backdrop-filter: blur(4px);
+}
+.loading-spinner {
+    width: 48px; height: 48px;
+    border: 3px solid var(--border);
+    border-top-color: #ffd93d;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+.loading-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.loading-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+@media (max-width: 900px) {
+    .editor-layout { grid-template-columns: 1fr; grid-template-rows: auto 340px 280px; height: auto; }
+    .examples-sidebar { flex-direction: row; overflow-x: auto; height: 80px; }
+    .sidebar-title { display: none; }
+    .example-btn { border-bottom: none; border-right: 1px solid var(--border); white-space: nowrap; min-width: 120px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Pyodide loading overlay -->
+<div class="pyodide-loading" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading Python Runtime…</div>
+    <div class="loading-sub">Pyodide is starting up — this only takes a moment</div>
+</div>
+
+<div class="editor-page-header">
+    <div class="icon">🐍</div>
+    <div>
+        <h1>Python <span>Code Editor</span></h1>
+        <p>Write and run Python right in your browser — no install needed. Try the AI/ML examples to get started!</p>
+    </div>
+</div>
+
+<div class="editor-layout">
+    <!-- Sidebar: starter examples -->
+    <div class="examples-sidebar">
+        <div class="sidebar-title">Starter Examples</div>
+        <button class="example-btn active" onclick="loadExample('hello')" data-key="hello">
+            <span class="ex-icon">👋</span>
+            <span class="ex-label">Hello Python</span>
+            <span class="ex-desc">Variables & print</span>
+        </button>
+        <button class="example-btn" onclick="loadExample('lists')" data-key="lists">
+            <span class="ex-icon">📋</span>
+            <span class="ex-label">Lists & Loops</span>
+            <span class="ex-desc">Iteration basics</span>
+        </button>
+        <button class="example-btn" onclick="loadExample('functions')" data-key="functions">
+            <span class="ex-icon">🔧</span>
+            <span class="ex-label">Functions</span>
+            <span class="ex-desc">Reusable code</span>
+        </button>
+        <button class="example-btn" onclick="loadExample('stats')" data-key="stats">
+            <span class="ex-icon">📊</span>
+            <span class="ex-label">Statistics</span>
+            <span class="ex-desc">Mean, median, std</span>
+        </button>
+        <button class="example-btn" onclick="loadExample('knn')" data-key="knn">
+            <span class="ex-icon">🤖</span>
+            <span class="ex-label">K-NN Classifier</span>
+            <span class="ex-desc">Simple ML from scratch</span>
+        </button>
+        <button class="example-btn" onclick="loadExample('neural')" data-key="neural">
+            <span class="ex-icon">⚡</span>
+            <span class="ex-label">Neural Net</span>
+            <span class="ex-desc">Forward pass math</span>
+        </button>
+        <button class="example-btn" onclick="loadExample('challenge')" data-key="challenge">
+            <span class="ex-icon">🏆</span>
+            <span class="ex-label">Challenge!</span>
+            <span class="ex-desc">Fix the bugs</span>
+        </button>
+    </div>
+
+    <!-- Code editor pane -->
+    <div class="editor-pane">
+        <div class="pane-header">
+            <div class="pane-title">
+                <div class="dot" style="background:#ffd93d;"></div>
+                main.py
+            </div>
+            <div class="pane-actions">
+                <span class="shortcut-hint">Ctrl+Enter to run</span>
+                <button class="btn-icon-sm" onclick="clearEditor()" title="Clear editor">🗑</button>
+                <button class="btn-run" id="runBtn" onclick="runCode()">
+                    ▶ Run
+                </button>
+            </div>
+        </div>
+        <div class="cm-wrapper">
+            <textarea id="codeEditor"></textarea>
+        </div>
+        <div class="status-bar">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Loading Python runtime…</span>
+            <span style="margin-left:auto;" id="execTime"></span>
+        </div>
+    </div>
+
+    <!-- Output pane -->
+    <div class="output-pane">
+        <div class="pane-header">
+            <div class="pane-title">
+                <div class="dot" style="background:#00ff88;"></div>
+                Output Console
+            </div>
+            <div class="pane-actions">
+                <button class="btn-icon-sm" onclick="clearOutput()" title="Clear output">Clear</button>
+            </div>
+        </div>
+        <div class="output-body" id="outputBody">
+            <div class="output-placeholder" id="outputPlaceholder">
+                ✨ Run your code to see output here
+            </div>
+        </div>
+        <div class="status-bar" id="outputStatus" style="font-size:12px;">
+            &nbsp;
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+
+<script>
+// ─── Starter code examples ──────────────────────────────────────────────────
+const EXAMPLES = {
+  hello: `# Hello Python!
+# Try editing this code and clicking Run
+
+name = "AI Learner"
+age = 15
+
+print(f"Hello, {name}!")
+print(f"In 5 years you'll be {age + 5}")
+
+# Variables and types
+score = 95.5
+passed = score >= 50
+
+print(f"\\nScore: {score}")
+print(f"Passed: {passed}")
+print(f"Grade: {'A' if score >= 90 else 'B' if score >= 80 else 'C'}")
+`,
+
+  lists: `# Lists and Loops
+# A dataset of student test scores
+
+scores = [72, 88, 95, 61, 79, 91, 84, 67, 93, 77]
+
+print("=== Class Scores ===")
+for i, score in enumerate(scores):
+    grade = "A" if score >= 90 else "B" if score >= 80 else "C" if score >= 70 else "F"
+    bar = "█" * (score // 10)
+    print(f"Student {i+1:2d}: {score:3d} {bar} ({grade})")
+
+# Filtering
+top_students = [s for s in scores if s >= 90]
+print(f"\\n🏆 Top scorers (≥90): {top_students}")
+print(f"📊 Total students: {len(scores)}")
+print(f"📈 Highest: {max(scores)}, Lowest: {min(scores)}")
+`,
+
+  functions: `# Functions — reusable code blocks
+import math
+
+def calculate_accuracy(correct, total):
+    """Returns accuracy as a percentage."""
+    if total == 0:
+        return 0
+    return (correct / total) * 100
+
+def describe_model(name, accuracy, params):
+    """Print a model summary card."""
+    bar_len = int(accuracy / 5)
+    bar = "█" * bar_len + "░" * (20 - bar_len)
+    print(f"\\n  Model : {name}")
+    print(f"  Acc   : [{bar}] {accuracy:.1f}%")
+    print(f"  Params: {params:,}")
+
+# Test our functions
+print("=== Model Comparison ===")
+models = [
+    ("Tiny NN",    calculate_accuracy(78, 100),   1_200),
+    ("Small NN",   calculate_accuracy(85, 100),  10_000),
+    ("Large NN",   calculate_accuracy(94, 100), 175_000),
+]
+for name, acc, params in models:
+    describe_model(name, acc, params)
+
+print("\\nBest model:", max(models, key=lambda m: m[1])[0])
+`,
+
+  stats: `# Statistics — the backbone of Machine Learning
+import math
+
+data = [23, 45, 12, 67, 34, 89, 56, 78, 43, 21, 65, 90, 37, 54, 82]
+
+def mean(values):
+    return sum(values) / len(values)
+
+def variance(values):
+    mu = mean(values)
+    return sum((x - mu) ** 2 for x in values) / len(values)
+
+def std_dev(values):
+    return math.sqrt(variance(values))
+
+def median(values):
+    s = sorted(values)
+    n = len(s)
+    return s[n // 2] if n % 2 else (s[n//2 - 1] + s[n//2]) / 2
+
+mu  = mean(data)
+med = median(data)
+std = std_dev(data)
+
+print("📊 Dataset:", data)
+print(f"\\n  Mean    : {mu:.2f}")
+print(f"  Median  : {med:.2f}")
+print(f"  Std Dev : {std:.2f}")
+print(f"  Min/Max : {min(data)} / {max(data)}")
+
+# Normalise (z-score)
+print("\\n🔄 Z-scores (normalised):")
+z_scores = [(x - mu) / std for x in data]
+for x, z in zip(data, z_scores):
+    print(f"  {x:3d}  →  {z:+.2f}")
+`,
+
+  knn: `# K-Nearest Neighbours — ML from scratch!
+import math
+
+# Training data: [feature1, feature2, label]
+# Imagine: hours_studied, sleep_hours → pass/fail
+training_data = [
+    (2, 4, "fail"), (3, 5, "fail"), (1, 3, "fail"),
+    (7, 7, "pass"), (8, 8, "pass"), (6, 6, "pass"),
+    (5, 6, "pass"), (4, 4, "fail"), (9, 8, "pass"),
+    (3, 3, "fail"),
+]
+
+def euclidean_distance(a, b):
+    return math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2)
+
+def knn_predict(point, data, k=3):
+    # Calculate distances to all training points
+    distances = [
+        (euclidean_distance(point, (d[0], d[1])), d[2])
+        for d in data
+    ]
+    # Sort and take k nearest
+    nearest = sorted(distances, key=lambda x: x[0])[:k]
+    # Vote
+    votes = [label for _, label in nearest]
+    return max(set(votes), key=votes.count), nearest
+
+# Test new students
+test_students = [(5, 5), (2, 3), (8, 7), (4, 3)]
+print("🤖 K-NN Classifier (k=3)")
+print("   Hours Studied | Sleep Hours → Prediction")
+print("   " + "─" * 44)
+for student in test_students:
+    prediction, neighbours = knn_predict(student, training_data, k=3)
+    emoji = "✅" if prediction == "pass" else "❌"
+    print(f"   Study={student[0]}h, Sleep={student[1]}h  →  {emoji} {prediction.upper()}")
+    print(f"     (nearest: {[(round(d,2), l) for d,l in neighbours]})")
+`,
+
+  neural: `# Neural Network — Forward Pass from scratch!
+import math
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
+def relu(x):
+    return max(0, x)
+
+def dot(weights, inputs):
+    """Weighted sum + bias."""
+    return sum(w * x for w, x in zip(weights[:-1], inputs)) + weights[-1]
+
+def layer_forward(inputs, weights_matrix, activation="relu"):
+    """Compute one layer's output."""
+    act_fn = sigmoid if activation == "sigmoid" else relu
+    return [act_fn(dot(w, inputs)) for w in weights_matrix]
+
+# A tiny neural network: 2 inputs → 3 hidden → 1 output
+# Input: [hours_studied, quiz_score]
+x = [0.8, 0.6]   # normalised features
+
+# Hidden layer weights (3 neurons, each has 2 weights + 1 bias)
+hidden_weights = [
+    [0.5, 0.3, -0.1],   # neuron 1
+    [-0.2, 0.8, 0.05],  # neuron 2
+    [0.4, -0.1, 0.2],   # neuron 3
+]
+# Output layer (1 neuron with 3 inputs + bias)
+output_weights = [[0.6, 0.3, 0.5, -0.2]]
+
+# Forward pass
+print("⚡ Neural Network Forward Pass")
+print(f"\\n  Input: {x}")
+
+hidden_out = layer_forward(x, hidden_weights, "relu")
+print(f"  Hidden (ReLU): {[round(h, 4) for h in hidden_out]}")
+
+output = layer_forward(hidden_out, output_weights, "sigmoid")
+pred = output[0]
+print(f"  Output (Sigmoid): {round(pred, 4)}")
+print(f"\\n  Prediction: {'PASS ✅' if pred > 0.5 else 'FAIL ❌'} ({pred*100:.1f}% confidence)")
+`,
+
+  challenge: `# 🏆 Bug Hunt Challenge!
+# There are 3 bugs in this code. Can you find and fix them all?
+# Hit Run to see the errors, then fix them one by one!
+
+def calculate_average(numbers):
+    total = 0
+    for num in numbers:
+        total += num
+    return total / len(numbers)
+
+scores = [85, 92, 78, 90, 88]
+
+avg = calculate_average(scores)
+print(f"Class average: {avg:.f}")   # Bug 1: format spec wrong
+
+students = {"Alice": 92, "Bob": 78, "Carol": 95}
+top = max(students, key=lambda k: students[k])
+print(f"Top student: {top} with {students[top]}")
+
+# Bug 2: this should print each student's grade
+for name, score in students:   # Bug 2: wrong iteration
+    grade = "A" if score >= 90 else "B"
+    print(f"  {name}: {grade}")
+
+# Bug 3: off-by-one — should check if index is valid
+data = [10, 20, 30]
+print(data[3])   # Bug 3: index out of range
+`,
+};
+
+// ─── CodeMirror setup ────────────────────────────────────────────────────────
+const editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+    mode: 'python',
+    theme: 'dracula',
+    lineNumbers: true,
+    autoCloseBrackets: true,
+    indentUnit: 4,
+    tabSize: 4,
+    indentWithTabs: false,
+    lineWrapping: false,
+    extraKeys: {
+        'Ctrl-Enter': runCode,
+        'Cmd-Enter': runCode,
+        'Ctrl-/': 'toggleComment',
+    },
+});
+// Make editor fill its container
+editor.setSize('100%', '100%');
+
+// Load first example
+loadExample('hello');
+
+// ─── Pyodide setup ───────────────────────────────────────────────────────────
+let pyodide = null;
+let pyodideReady = false;
+
+async function loadPyodide() {
+    try {
+        // Dynamically load pyodide script
+        await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js';
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+
+        pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/' });
+
+        // Redirect Python stdout/stderr to our console
+        pyodide.runPython(`
+import sys
+import io
+
+class OutputCapture:
+    def __init__(self, tag):
+        self.tag = tag
+        self._buf = ''
+    def write(self, text):
+        self._buf += text
+    def flush(self):
+        pass
+    def get_and_clear(self):
+        val = self._buf
+        self._buf = ''
+        return val
+
+_stdout_capture = OutputCapture('stdout')
+_stderr_capture = OutputCapture('stderr')
+sys.stdout = _stdout_capture
+sys.stderr = _stderr_capture
+        `);
+
+        pyodideReady = true;
+        document.getElementById('loadingOverlay').style.display = 'none';
+        setStatus('ready', 'Python ready — Ctrl+Enter to run');
+        document.getElementById('runBtn').disabled = false;
+
+    } catch (err) {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        setStatus('error', 'Failed to load Python runtime');
+        appendOutput(`Error loading Pyodide: ${err.message}`, 'stderr');
+    }
+}
+
+loadPyodide();
+
+// ─── Run code ────────────────────────────────────────────────────────────────
+async function runCode() {
+    if (!pyodideReady) {
+        appendOutput('Python runtime is still loading, please wait…', 'info');
+        return;
+    }
+
+    const code = editor.getValue().trim();
+    if (!code) return;
+
+    const runBtn = document.getElementById('runBtn');
+    runBtn.disabled = true;
+    setStatus('running', 'Running…');
+
+    const placeholder = document.getElementById('outputPlaceholder');
+    if (placeholder) placeholder.remove();
+
+    // Separator
+    appendOutput(`── Run at ${new Date().toLocaleTimeString()} ──`, 'separator');
+
+    const startTime = performance.now();
+
+    try {
+        // Clear capture buffers
+        pyodide.runPython(`_stdout_capture._buf = ''; _stderr_capture._buf = ''`);
+
+        // Run user code
+        await pyodide.runPythonAsync(code);
+
+        // Grab stdout
+        const stdout = pyodide.runPython(`_stdout_capture.get_and_clear()`);
+        const stderr = pyodide.runPython(`_stderr_capture.get_and_clear()`);
+
+        if (stdout) {
+            stdout.split('\n').forEach(line => appendOutput(line, 'stdout'));
+        }
+        if (stderr) {
+            stderr.split('\n').forEach(line => appendOutput(line, 'stderr'));
+        }
+        if (!stdout && !stderr) {
+            appendOutput('(no output)', 'info');
+        }
+
+        const elapsed = ((performance.now() - startTime) / 1000).toFixed(3);
+        setStatus('ready', 'Done');
+        document.getElementById('execTime').textContent = `⏱ ${elapsed}s`;
+        document.getElementById('outputStatus').textContent = `Finished in ${elapsed}s`;
+
+    } catch (err) {
+        const stderr = pyodide.runPython(`_stderr_capture.get_and_clear()`);
+        if (stderr) stderr.split('\n').forEach(l => appendOutput(l, 'stderr'));
+
+        // Extract clean error message
+        const errMsg = err.message || String(err);
+        appendOutput(errMsg, 'stderr');
+        setStatus('error', 'Error — check output');
+        document.getElementById('outputStatus').textContent = 'Execution failed';
+    }
+
+    runBtn.disabled = false;
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function appendOutput(text, type = 'stdout') {
+    const body = document.getElementById('outputBody');
+    const line = document.createElement('div');
+    line.className = `output-line ${type}`;
+    line.textContent = text;
+    body.appendChild(line);
+    body.scrollTop = body.scrollHeight;
+}
+
+function clearOutput() {
+    const body = document.getElementById('outputBody');
+    body.innerHTML = '<div class="output-placeholder" id="outputPlaceholder">✨ Run your code to see output here</div>';
+    document.getElementById('outputStatus').textContent = '\u00a0';
+    document.getElementById('execTime').textContent = '';
+}
+
+function clearEditor() {
+    editor.setValue('');
+    editor.focus();
+}
+
+function loadExample(key) {
+    editor.setValue(EXAMPLES[key] || '');
+    editor.focus();
+    // Update active button
+    document.querySelectorAll('.example-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector(`[data-key="${key}"]`);
+    if (btn) btn.classList.add('active');
+    clearOutput();
+}
+
+function setStatus(state, text) {
+    const dot = document.getElementById('statusDot');
+    const txt = document.getElementById('statusText');
+    dot.className = `status-dot ${state}`;
+    txt.textContent = text;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.lb-hero { margin-bottom: 48px; }
+.lb-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.lb-hero h1 span {
+background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.lb-layout {
+display: grid;
+grid-template-columns: 1fr 360px;
+gap: 40px;
+}
+
+.premium-table-wrap {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 32px;
+overflow: hidden;
+box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+.lb-header-row {
+display: grid;
+grid-template-columns: 80px 1fr 140px 160px;
+padding: 24px 32px;
+background: rgba(255, 255, 255, 0.02);
+border-bottom: 1px solid var(--border);
+font-size: 11px;
+font-weight: 800;
+text-transform: uppercase;
+color: var(--text-muted);
+letter-spacing: 0.1em;
+}
+
+.lb-user-row {
+display: grid;
+grid-template-columns: 80px 1fr 140px 160px;
+padding: 20px 32px;
+align-items: center;
+border-bottom: 1px solid rgba(255,255,255,0.03);
+transition: all 0.2s;
+}
+
+.lb-user-row:last-child { border: none; }
+.lb-user-row:hover { background: rgba(255,255,255,0.02); }
+
+.lb-user-row.current {
+background: rgba(0, 255, 136, 0.05);
+border-left: 4px solid var(--accent-green);
+}
+
+.rank-pill {
+width: 40px;
+height: 40px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-weight: 800;
+font-size: 14px;
+}
+
+.rank-1 { background: #ffd700; color: #000; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+.rank-2 { background: #c0c0c0; color: #000; }
+.rank-3 { background: #cd7f32; color: #000; }
+.rank-other { background: var(--bg-secondary); color: var(--text-muted); }
+
+.user-info-cell { display: flex; align-items: center; gap: 16px; }
+.user-avatar {
+width: 44px;
+height: 44px;
+border-radius: 12px;
+background: var(--bg-secondary);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 20px;
+border: 1px solid var(--border);
+}
+
+.user-name-wrap { display: flex; flex-direction: column; }
+.name-text { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.level-badge {
+font-size: 10px;
+font-weight: 800;
+color: var(--accent-green);
+text-transform: uppercase;
+}
+
+.xp-text { font-size: 18px; font-weight: 800; color: var(--text-primary); }
+
+.progress-cell { width: 100%; }
+.lb-progress-bar { height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;
+margin-bottom: 6px; }
+.lb-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+border-radius: 10px; }
+
+.lb-sidebar { display: flex; flex-direction: column; gap: 24px; }
+
+.lb-card {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 24px;
+padding: 32px;
+}
+
+.lb-card h3 {
+font-size: 11px;
+font-weight: 800;
+text-transform: uppercase;
+color: var(--text-muted);
+letter-spacing: 0.1em;
+margin-bottom: 24px;
+}
+
+.stat-value { font-size: 48px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+.stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
+
+@media (max-width: 900px) {
+.lb-layout { grid-template-columns: 1fr; }
+.lb-header-row, .lb-user-row { grid-template-columns: 60px 1fr 100px; }
+.progress-cell { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="lb-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>Leaderboard</span>
+    </div>
+    <h1>Global<br><span>Hall of Fame</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Recognition for the most
+        dedicated minds in the pursuit of AI mastery.</p>
+</div>
+
+<div class="lb-layout">
+    <div class="premium-table-wrap">
+        <div class="lb-header-row">
+            <div>Rank</div>
+            <div>Learner</div>
+            <div>Knowledge XP</div>
+            <div>Path Progress</div>
+        </div>
+        <div id="lb-body">
+            <div style="padding: 100px; text-align: center; color: var(--text-muted);">
+                <div class="pulse-dot" style="margin: 0 auto 20px;"></div>
+                Updating Global Rankings...
+            </div>
+        </div>
+    </div>
+
+    <aside class="lb-sidebar">
+        <div class="lb-card" id="my-stats-card" style="display:none;">
+            <h3>Your Standings</h3>
+            <div class="stat-value" id="my-rank">#—</div>
+            <div class="stat-label">Global Rank</div>
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px;">
+                    <span id="level-text" style="color:var(--accent-green); font-weight:800;">Lvl 1 Beginner</span>
+                    <span id="xp-text" style="color:var(--text-primary); font-weight:800;">0 XP</span>
+                </div>
+                <div class="lb-progress-bar">
+                    <div class="lb-progress-fill" id="my-progress-fill" style="width:0%"></div>
+                </div>
+                <div id="xp-hint" style="font-size:11px; color:var(--text-muted);">0 XP to next level</div>
+            </div>
+        </div>
+
+        <div class="lb-card" id="streak-card" style="display:none;">
+            <h3>Engagement</h3>
+            <div style="display:flex; align-items:center; gap:20px;">
+                <div style="font-size:40px;">🔥</div>
+                <div>
+                    <div class="stat-value" id="streak-count">0</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lb-card" id="history-card" style="display:none;">
+            <h3>Growth History</h3>
+            <div id="activity-feed">
+                <!-- Activity -->
+            </div>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function loadBoard() {
+        const body = document.getElementById('lb-body');
+        try {
+        const res = await fetch('/api/gamification/leaderboard/');
+        if (!res.ok) throw new Error('Failed to load');
+        const data = await res.json();
+
+        if (!data.leaderboard || data.leaderboard.length === 0) {
+            body.innerHTML = '<div style="padding:80px;text-align:center;color:var(--text-muted);">No rankings yet. Be the first to earn XP!</div>';
+            return;
+        }
+
+        body.innerHTML = data.leaderboard.map(u => {
+            const rankClass = u.rank === 1 ? 'rank-1' : u.rank === 2 ? 'rank-2' : u.rank === 3 ? 'rank-3' : 'rank-other';
+            const rankIcon = u.rank === 1 ? '👑' : u.rank === 2 ? '🥈' : u.rank === 3 ? '🥉' : u.rank;
+
+            return `
+                <div class="lb-user-row ${u.rank === data.current_rank ? 'current' : ''}">
+                    <div>
+                        <div class="rank-pill ${rankClass}">${rankIcon}</div>
+                    </div>
+                    <div class="user-info-cell">
+                        <div class="user-avatar">👤</div>
+                        <div class="user-name-wrap">
+                            <span class="name-text">${u.username}</span>
+                            <span class="level-badge">Lvl ${u.level} · ${u.level_title}</span>
+                        </div>
+                    </div>
+                    <div class="xp-text">${u.total_xp.toLocaleString()}</div>
+                    <div class="progress-cell">
+                        <div class="lb-progress-bar"><div class="lb-progress-fill" style="width:${u.level_progress_pct}%"></div></div>
+                        <div style="font-size:10px; color:var(--text-muted);">${u.level_progress_pct}% complete</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        } catch (e) {
+            body.innerHTML = '<div style="padding:80px;text-align:center;color:var(--text-muted);">Could not load rankings. Please refresh.</div>';
+        }
+    }
+
+    async function loadPersonal() {
+        try {
+            const res = await fetch('/api/gamification/stats/');
+            if (!res.ok) return;
+            const d = await res.json();
+
+            document.getElementById('my-stats-card').style.display = 'block';
+            document.getElementById('streak-card').style.display = 'block';
+            document.getElementById('history-card').style.display = 'block';
+
+            document.getElementById('my-rank').textContent = '#' + d.rank;
+            document.getElementById('level-text').textContent = `Lvl ${d.level} ${d.level_title}`;
+            document.getElementById('xp-text').textContent = d.total_xp.toLocaleString() + ' XP';
+            document.getElementById('my-progress-fill').style.width = d.level_progress_pct + '%';
+            document.getElementById('xp-hint').textContent = `${d.xp_to_next_level} XP to next level`;
+            document.getElementById('streak-count').textContent = d.current_streak;
+
+            const feed = document.getElementById('activity-feed');
+            feed.innerHTML = d.recent_events.map(e => `
+                <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:13px;">
+                    <span style="color:var(--text-secondary);">${e.reason.replace(/_/g, ' ')}</span>
+                    <span style="color:var(--accent-green); font-weight:800;">+${e.amount}</span>
+                </div>
+            `).join('') || '<div style="font-size:12px; color:var(--text-muted);">No recent logs.</div>';
+        } catch (e) { }
+    }
+
+    loadBoard();
+    {% if request.user.is_authenticated %}loadPersonal();{% endif %}
+</script>
+{% endblock %}

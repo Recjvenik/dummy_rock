@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}Badges — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.badges-hero { margin-bottom: 48px; }
+.badges-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.badges-hero h1 span {
+background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.badges-stats {
+display: flex;
+gap: 32px;
+margin-bottom: 60px;
+background: var(--bg-card);
+padding: 32px;
+border-radius: 24px;
+border: 1px solid var(--border);
+width: fit-content;
+}
+
+.badge-stat-item { text-align: center; }
+.badge-stat-val { font-size: 40px; font-weight: 800; color: var(--accent-green); line-height: 1; }
+.badge-stat-lbl { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin-top: 6px; font-weight:
+700; }
+
+.badges-gallery {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+gap: 24px;
+}
+
+.premium-badge-card {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 28px;
+padding: 40px 24px;
+text-align: center;
+transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+position: relative;
+cursor: default;
+}
+
+.premium-badge-card.earned {
+border-color: rgba(0, 255, 136, 0.3);
+box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.premium-badge-card.locked {
+opacity: 0.5;
+filter: grayscale(1) blur(0.5px);
+}
+
+.premium-badge-card:hover:not(.locked) {
+transform: translateY(-8px) scale(1.03);
+border-color: var(--accent-green);
+box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+
+.badge-visual {
+font-size: 64px;
+margin-bottom: 24px;
+display: block;
+filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));
+}
+
+.badge-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--text-primary); }
+.badge-description { font-size: 13px; color: var(--text-secondary); line-height: 1.6; padding: 0 10px; }
+
+.badge-footer {
+margin-top: 24px;
+padding-top: 20px;
+border-top: 1px solid rgba(255,255,255,0.03);
+}
+
+.earned-date { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--accent-green); }
+.locked-label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); }
+
+.filter-scroller {
+display: flex;
+gap: 10px;
+margin-bottom: 40px;
+overflow-x: auto;
+padding-bottom: 12px;
+}
+
+.filter-scroller::-webkit-scrollbar { height: 4px; }
+.filter-scroller::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+.section-divider {
+font-size: 11px;
+font-weight: 800;
+text-transform: uppercase;
+color: var(--text-muted);
+letter-spacing: 0.15em;
+margin: 60px 0 24px;
+display: flex;
+align-items: center;
+gap: 16px;
+}
+.section-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+@media (max-width: 600px) {
+.badges-stats { width: 100%; justify-content: space-around; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="badges-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>My Badges</span>
+    </div>
+    <h1>Achievement<br><span>Cabinet</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">A showcase of your
+        milestones, explorations, and contributions to the AI community.</p>
+</div>
+
+<div class="badges-stats">
+    <div class="badge-stat-item">
+        <div class="badge-stat-val" id="count-earned">0</div>
+        <div class="badge-stat-lbl">Earned</div>
+    </div>
+    <div style="width:1px; background:var(--border); align-self:stretch;"></div>
+    <div class="badge-stat-item">
+        <div class="badge-stat-val" id="count-locked" style="color:var(--text-muted);">0</div>
+        <div class="badge-stat-lbl">Remaining</div>
+    </div>
+</div>
+
+<div class="filter-scroller">
+    <button class="btn btn-secondary active" onclick="filterGallery('all', this)"
+        style="border-radius:100px; padding:10px 24px;">All Categories</button>
+    <button class="btn btn-secondary" onclick="filterGallery('learn', this)"
+        style="border-radius:100px; padding:10px 24px;">📚 Learning</button>
+    <button class="btn btn-secondary" onclick="filterGallery('explore', this)"
+        style="border-radius:100px; padding:10px 24px;">🔭 Exploration</button>
+    <button class="btn btn-secondary" onclick="filterGallery('streak', this)"
+        style="border-radius:100px; padding:10px 24px;">🔥 Consistency</button>
+    <button class="btn btn-secondary" onclick="filterGallery('social', this)"
+        style="border-radius:100px; padding:10px 24px;">💬 Community</button>
+</div>
+
+<div class="section-divider">Unlocked Achievements</div>
+<div class="badges-gallery" id="earned-gallery">
+    <div style="grid-column: 1/-1; padding: 60px; text-align: center; color: var(--text-muted);">Loading your cabinet...
+    </div>
+</div>
+
+<div class="section-divider">Upcoming Milestones</div>
+<div class="badges-gallery" id="locked-gallery"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let cacheEarned = [], cacheLocked = [];
+
+    function renderBadge(b, isEarned) {
+        return `
+            <div class="premium-badge-card ${isEarned ? 'earned' : 'locked'}" data-category="${b.category}">
+                <span class="badge-visual">${b.icon}</span>
+                <div class="badge-title" style="color:${b.color || 'inherit'}">${b.name}</div>
+                <p class="badge-description">${b.description}</p>
+                <div class="badge-footer">
+                    ${isEarned
+                ? `<span class="earned-date">Unlocked ${new Date(b.awarded_at).toLocaleDateString()}</span>`
+                : `<span class="locked-label">Locked · +${b.xp_reward} XP Available</span>`}
+                </div>
+            </div>
+        `;
+    }
+
+    async function loadCabinet() {
+        try {
+            const res = await fetch('/api/gamification/badges/');
+            const data = await res.json();
+
+            cacheEarned = data.earned || [];
+            cacheLocked = data.locked || [];
+
+            document.getElementById('count-earned').textContent = cacheEarned.length;
+            document.getElementById('count-locked').textContent = cacheLocked.length;
+
+            renderGrids('all');
+        } catch (e) {
+            document.getElementById('earned-gallery').innerHTML = `
+                <div style="grid-column: 1/-1; padding: 40px; text-align: center;">
+                    <p style="color:var(--text-muted); margin-bottom:20px;">Identity not verified. Login to view your cabinet.</p>
+                </div>
+            `;
+        }
+    }
+
+    function renderGrids(cat) {
+        const eGrid = document.getElementById('earned-gallery');
+        const lGrid = document.getElementById('locked-gallery');
+
+        const filteredE = cat === 'all' ? cacheEarned : cacheEarned.filter(b => b.category === cat);
+        const filteredL = cat === 'all' ? cacheLocked : cacheLocked.filter(b => b.category === cat);
+
+        eGrid.innerHTML = filteredE.map(b => renderBadge(b, true)).join('') || '<div style="color:var(--text-muted); padding:40px; grid-column:1/-1; text-align:center;">No badges in this section.</div>';
+        lGrid.innerHTML = filteredL.map(b => renderBadge(b, false)).join('');
+    }
+
+    function filterGallery(cat, btn) {
+        document.querySelectorAll('.filter-scroller .btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderGrids(cat);
+    }
+
+    loadCabinet();
+</script>
+{% endblock %}

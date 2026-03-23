@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Lab — Where India's Next Generation Learns AI</title>
+    <meta name="description" content="Live Claude AI · 15+ Interactive Labs · Class 8–12 Curriculum. India's premier AI/ML learning platform for schools.">
+    {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     TOP NAV
+═══════════════════════════════════════════════ -->
+<nav class="landing-nav">
+    <a href="/welcome/" class="nav-logo">
+        <div class="nav-logo-icon">🧠</div>
+        AI Lab
+    </a>
+    <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+        <a href="/login/" class="btn btn-outline">Login</a>
+        <a href="#inquiry" class="btn btn-primary">Book School Demo</a>
+    </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════ -->
+<section class="hero-landing">
+    <div class="hero-badge">
+        <div class="pulse-dot"></div>
+        India's AI Learning Platform · Class 8–12
+    </div>
+    <h1>
+        Where India's Next<br>
+        Generation Learns <span class="grad">AI</span>
+    </h1>
+    <p class="hero-sub">
+        Live Claude AI &nbsp;·&nbsp; 15+ Interactive Labs &nbsp;·&nbsp; Class 8–12 Curriculum<br>
+        No app download. Pure browser. Loved by students, trusted by teachers.
+    </p>
+    <div class="hero-btns">
+        <a href="/register/" class="btn btn-green btn-lg">🚀 Start Free</a>
+        <a href="#inquiry" class="btn btn-primary btn-lg">🏫 Book School Demo</a>
+    </div>
+    <!-- Animated CSS Demo Thumbnail — zero video file, zero CDN, instant load -->
+    <div class="hero-video demo-preview" id="demoPreview" onclick="openDemo()" role="button" tabindex="0" aria-label="Open 2-minute platform demo">
+        <div class="dp-screen">
+            <div class="dp-topbar">
+                <div class="dp-dots"><span class="dp-dot r"></span><span class="dp-dot a"></span><span class="dp-dot g"></span></div>
+                <div class="dp-url">ailab.school/dashboard</div>
+                <div class="dp-live-pill">● LIVE AI</div>
+            </div>
+            <div class="dp-layout">
+                <div class="dp-sidebar">
+                    <div class="dp-nav active">🏠 Dashboard</div>
+                    <div class="dp-nav">🤖 AI Tutor</div>
+                    <div class="dp-nav">🔵 K-Means</div>
+                    <div class="dp-nav">📊 Progress</div>
+                    <div class="dp-nav">🏆 Leaderboard</div>
+                </div>
+                <div class="dp-content">
+                    <div class="dp-stats-row">
+                        <div class="dp-scard grn"><div class="dp-sv">2,450</div><div class="dp-sl">XP Points</div></div>
+                        <div class="dp-scard"><div class="dp-sv">7/7</div><div class="dp-sl">Modules</div></div>
+                        <div class="dp-scard blu"><div class="dp-sv">#3</div><div class="dp-sl">Class Rank</div></div>
+                        <div class="dp-scard org"><div class="dp-sv">94%</div><div class="dp-sl">Avg Score</div></div>
+                    </div>
+                    <div class="dp-chart">
+                        <div class="dp-bar" style="--h:55%;--d:0.0s"></div>
+                        <div class="dp-bar" style="--h:72%;--d:0.1s"></div>
+                        <div class="dp-bar" style="--h:48%;--d:0.2s"></div>
+                        <div class="dp-bar hi" style="--h:90%;--d:0.3s"></div>
+                        <div class="dp-bar" style="--h:65%;--d:0.4s"></div>
+                        <div class="dp-bar" style="--h:80%;--d:0.5s"></div>
+                        <div class="dp-bar hi" style="--h:95%;--d:0.6s"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dp-overlay">
+            <button class="dp-play-btn" aria-label="Play demo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <span class="dp-play-label">Watch 2-min Platform Demo</span>
+            <span class="dp-play-sub">No signup · Instant</span>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     DEMO MODAL — Pure CSS/JS, zero video file
+═══════════════════════════════════════════════ -->
+<div class="demo-modal" id="demoModal" onclick="closeDemoBackdrop(event)">
+    <div class="dm-box">
+        <button class="dm-close" onclick="closeDemo()" aria-label="Close demo">&times;</button>
+        <div class="dm-header">
+            <div class="dm-tabs" id="dmTabs">
+                <span class="dm-tab on">Dashboard</span>
+                <span class="dm-tab">AI Tutor</span>
+                <span class="dm-tab">K-Means Lab</span>
+                <span class="dm-tab">Achievements</span>
+            </div>
+            <div class="dm-prog"><div id="dmFill" class="dm-fill"></div></div>
+        </div>
+        <div class="dm-screen">
+
+            <!-- Scene 0: Dashboard -->
+            <div class="dm-scene on" id="ds0">
+                <div class="ms-hdr">
+                    <div><div class="ms-title">Welcome back, Aryan 👋</div><div class="ms-sub">Class 10 · AI &amp; ML Track · Mumbai</div></div>
+                    <div class="ms-live">● LIVE AI Active</div>
+                </div>
+                <div class="ms-stats">
+                    <div class="ms-sc grn"><div class="ms-sv">2,450</div><div class="ms-sl">XP Points</div></div>
+                    <div class="ms-sc"><div class="ms-sv">7 / 7</div><div class="ms-sl">Modules Done</div></div>
+                    <div class="ms-sc blu"><div class="ms-sv">Rank #3</div><div class="ms-sl">Class Leaderboard</div></div>
+                    <div class="ms-sc org"><div class="ms-sv">94%</div><div class="ms-sl">Avg Score</div></div>
+                </div>
+                <div class="ms-chart">
+                    <div class="ms-chart-lbl">Weekly Activity</div>
+                    <div class="ms-bars">
+                        <div class="msb" style="--h:55%;--d:0.1s"><span>Mon</span></div>
+                        <div class="msb" style="--h:72%;--d:0.2s"><span>Tue</span></div>
+                        <div class="msb" style="--h:48%;--d:0.3s"><span>Wed</span></div>
+                        <div class="msb hi" style="--h:90%;--d:0.4s"><span>Thu</span></div>
+                        <div class="msb" style="--h:65%;--d:0.5s"><span>Fri</span></div>
+                        <div class="msb" style="--h:80%;--d:0.6s"><span>Sat</span></div>
+                        <div class="msb hi" style="--h:95%;--d:0.7s"><span>Sun</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scene 1: AI Tutor Chat -->
+            <div class="dm-scene" id="ds1">
+                <div class="chat-hdr">
+                    <div class="chat-av">AI</div>
+                    <div><div class="chat-nm">Claude AI Tutor</div><div class="chat-st">● Online · Powered by Anthropic</div></div>
+                </div>
+                <div class="chat-msgs">
+                    <div class="cmsg usr" style="animation-delay:0.3s">What is supervised learning? Explain simply.</div>
+                    <div class="cmsg ai" style="animation-delay:1.4s"><strong>Supervised learning</strong> trains a model on labeled examples — like a teacher grading answers. The model learns to predict the right output from input data.</div>
+                    <div class="cmsg usr" style="animation-delay:3.6s">Give me a real-world example.</div>
+                    <div class="cmsg ai" style="animation-delay:4.8s">Email spam detection! Input = email text. Output = "spam" or "not spam". Model trained on thousands of labeled emails. 📧</div>
+                    <div class="cmsg ai cta" style="animation-delay:6.2s">✨ Try the live classifier in Practice Zone →</div>
+                </div>
+            </div>
+
+            <!-- Scene 2: K-Means Lab -->
+            <div class="dm-scene" id="ds2">
+                <div class="km-hdr">K-Means Clustering — Interactive Lab</div>
+                <div class="km-canvas">
+                    <svg class="km-svg" viewBox="0 0 480 210" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Cluster 1 (green) -->
+                        <circle cx="90"  cy="80"  r="6" class="kd c1" style="--kd:0.1s"/>
+                        <circle cx="115" cy="65"  r="6" class="kd c1" style="--kd:0.2s"/>
+                        <circle cx="75"  cy="100" r="6" class="kd c1" style="--kd:0.3s"/>
+                        <circle cx="105" cy="110" r="6" class="kd c1" style="--kd:0.4s"/>
+                        <circle cx="125" cy="88"  r="6" class="kd c1" style="--kd:0.5s"/>
+                        <circle cx="82"  cy="58"  r="6" class="kd c1" style="--kd:0.6s"/>
+                        <!-- Cluster 2 (blue) -->
+                        <circle cx="290" cy="55"  r="6" class="kd c2" style="--kd:0.7s"/>
+                        <circle cx="315" cy="75"  r="6" class="kd c2" style="--kd:0.8s"/>
+                        <circle cx="265" cy="70"  r="6" class="kd c2" style="--kd:0.9s"/>
+                        <circle cx="300" cy="45"  r="6" class="kd c2" style="--kd:1.0s"/>
+                        <circle cx="320" cy="90"  r="6" class="kd c2" style="--kd:1.1s"/>
+                        <circle cx="275" cy="88"  r="6" class="kd c2" style="--kd:1.2s"/>
+                        <!-- Cluster 3 (orange) -->
+                        <circle cx="185" cy="175" r="6" class="kd c3" style="--kd:1.3s"/>
+                        <circle cx="215" cy="165" r="6" class="kd c3" style="--kd:1.4s"/>
+                        <circle cx="165" cy="168" r="6" class="kd c3" style="--kd:1.5s"/>
+                        <circle cx="205" cy="188" r="6" class="kd c3" style="--kd:1.6s"/>
+                        <circle cx="228" cy="158" r="6" class="kd c3" style="--kd:1.7s"/>
+                        <circle cx="175" cy="158" r="6" class="kd c3" style="--kd:1.8s"/>
+                        <!-- Radius rings -->
+                        <circle cx="99"  cy="84"  r="52" class="kr c1" style="--kd:2.2s"/>
+                        <circle cx="294" cy="71"  r="56" class="kr c2" style="--kd:2.4s"/>
+                        <circle cx="196" cy="169" r="52" class="kr c3" style="--kd:2.6s"/>
+                        <!-- Centroids -->
+                        <circle cx="99"  cy="84"  r="10" class="kc c1" style="--kd:2.8s"/>
+                        <circle cx="294" cy="71"  r="10" class="kc c2" style="--kd:3.0s"/>
+                        <circle cx="196" cy="169" r="10" class="kc c3" style="--kd:3.2s"/>
+                    </svg>
+                </div>
+                <div class="km-status">
+                    <span class="km-badge">Iteration 4 / 5</span>
+                    <span class="km-desc">3 clusters converging · Drag any point to see live re-clustering</span>
+                </div>
+            </div>
+
+            <!-- Scene 3: Achievements -->
+            <div class="dm-scene" id="ds3">
+                <div class="ach-hdr">Your Achievement Wall 🏆</div>
+                <div class="ach-xp">
+                    <div class="ach-xp-info"><span>Level 8 · 2,450 XP</span><span>550 XP to Level 9</span></div>
+                    <div class="ach-xp-track"><div class="ach-xp-bar"></div></div>
+                </div>
+                <div class="ach-grid">
+                    <div class="abadge" style="animation-delay:0.15s"><div class="ab-icon">🧠</div><div class="ab-name">AI Explorer</div></div>
+                    <div class="abadge" style="animation-delay:0.30s"><div class="ab-icon">📊</div><div class="ab-name">Data Master</div></div>
+                    <div class="abadge" style="animation-delay:0.45s"><div class="ab-icon">🤖</div><div class="ab-name">ML Wizard</div></div>
+                    <div class="abadge" style="animation-delay:0.60s"><div class="ab-icon">⚡</div><div class="ab-name">Speed Coder</div></div>
+                    <div class="abadge" style="animation-delay:0.75s"><div class="ab-icon">🔥</div><div class="ab-name">7-Day Streak</div></div>
+                    <div class="abadge" style="animation-delay:0.90s"><div class="ab-icon">🏆</div><div class="ab-name">Top Ranker</div></div>
+                    <div class="abadge locked" style="animation-delay:1.05s"><div class="ab-icon">🌟</div><div class="ab-name">AI Legend</div></div>
+                    <div class="abadge locked" style="animation-delay:1.20s"><div class="ab-icon">🚀</div><div class="ab-name">Pioneer</div></div>
+                </div>
+            </div>
+
+        </div><!-- /dm-screen -->
+    </div><!-- /dm-box -->
+</div><!-- /demo-modal -->
+
+<script>
+(function(){
+    var SCENE_MS = 8000, TOTAL = 4, _t = null, _elapsed = 0;
+    function openDemo(){
+        document.getElementById('demoModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        _elapsed = 0;
+        showScene(0);
+        clearInterval(_t);
+        _t = setInterval(function(){
+            _elapsed += 100;
+            var pct = (_elapsed / (SCENE_MS * TOTAL)) * 100;
+            document.getElementById('dmFill').style.width = Math.min(pct, 100) + '%';
+            if(_elapsed % SCENE_MS === 0){
+                var s = _elapsed / SCENE_MS;
+                if(s >= TOTAL){ closeDemo(); } else { showScene(s); }
+            }
+        }, 100);
+    }
+    function closeDemo(){
+        document.getElementById('demoModal').classList.remove('open');
+        document.body.style.overflow = '';
+        clearInterval(_t);
+        document.getElementById('dmFill').style.width = '0%';
+    }
+    function closeDemoBackdrop(e){
+        if(e.target === document.getElementById('demoModal')) closeDemo();
+    }
+    function showScene(n){
+        document.querySelectorAll('.dm-scene').forEach(function(s,i){ s.classList.toggle('on', i===n); });
+        document.querySelectorAll('.dm-tab').forEach(function(t,i){ t.classList.toggle('on', i===n); });
+    }
+    window.openDemo = openDemo;
+    window.closeDemo = closeDemo;
+    window.closeDemoBackdrop = closeDemoBackdrop;
+    document.getElementById('demoPreview').addEventListener('keydown', function(e){
+        if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openDemo(); }
+    });
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════
+     STATS STRIP
+═══════════════════════════════════════════════ -->
+<div class="stats-strip">
+    <div class="stats-strip-inner">
+        <div class="stat-item"><div class="val">7</div><div class="lbl">AI Modules</div></div>
+        <div class="stat-item"><div class="val">15+</div><div class="lbl">Interactive Labs</div></div>
+        <div class="stat-item"><div class="val">100+</div><div class="lbl">AI Terms Covered</div></div>
+        <div class="stat-item"><div class="val">Live</div><div class="lbl">Claude AI Built-in</div></div>
+        <div class="stat-item"><div class="val">8–12</div><div class="lbl">Class Range</div></div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PROBLEM / SOLUTION
+═══════════════════════════════════════════════ -->
+<div class="section">
+    <div class="section-title">
+        <span class="eyebrow">The Problem</span>
+        <h2>AI is the skill India cannot afford to ignore</h2>
+        <p>Yet most students graduate without understanding the tools that will define their careers.</p>
+    </div>
+    <div class="problem-grid">
+        <div class="problem-card">
+            <div class="problem-icon">😕</div>
+            <h3>The Problem</h3>
+            <p>AI jobs are growing 40% year-on-year but students learn from 2010-era textbooks. There is no practical, hands-on AI curriculum built for Indian schools.</p>
+        </div>
+        <div class="problem-card">
+            <div class="problem-icon">🕳️</div>
+            <h3>The Gap</h3>
+            <p>YouTube videos are unstructured. Coaching apps are rote-learning focused. No platform offers live AI interaction, simulators, AND grade-level curriculum together.</p>
+        </div>
+        <div class="problem-card" style="border-color: rgba(0,255,136,0.3);">
+            <div class="problem-icon">✅</div>
+            <h3>The Solution</h3>
+            <p>AI Lab gives every Class 8–12 student access to live Claude AI, 15+ interactive simulators, and a structured curriculum — all in a browser, at ₹300/student/year.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FEATURES — MODULES
+═══════════════════════════════════════════════ -->
+<div id="features" class="section" style="padding-top: 0;">
+    <div class="section-title">
+        <span class="eyebrow">Learning Modules</span>
+        <h2>7 Modules. 0 Fluff.</h2>
+        <p>Each module is built with Indian curriculum standards in mind, from Class 8 foundations to Class 12 advanced systems.</p>
+    </div>
+    <div class="module-grid">
+        {% for module in modules %}
+        <div class="module-landing-card">
+            <div class="module-accent" style="background: {{ module.color|default:'#4d96ff' }};"></div>
+            <div class="module-body">
+                <span class="module-grade-pill">Class {{ module.grade_level }}</span>
+                <span class="module-tag-pill">{{ module.get_tag_display }}</span>
+                <div style="font-size: 32px; margin: 12px 0 8px; clear: both;">{{ module.icon }}</div>
+                <h3>{{ module.title }}</h3>
+                <p>{{ module.description|truncatewords:18 }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <!-- Fallback static cards if no modules in DB -->
+        {% for m in "1234567"|make_list %}
+        <div class="module-landing-card">
+            <div class="module-accent" style="background: #00ff88;"></div>
+            <div class="module-body">
+                <span class="module-tag-pill">Core</span>
+                <div style="font-size: 32px; margin: 12px 0 8px;">🧠</div>
+                <h3>AI Module {{ forloop.counter }}</h3>
+                <p>Interactive AI learning module with hands-on simulators and real Claude AI integration.</p>
+            </div>
+        </div>
+        {% endfor %}
+        {% endfor %}
+    </div>
+
+    <div class="section-title" style="margin-top: 80px; margin-bottom: 40px;">
+        <span class="eyebrow">Interactive Labs</span>
+        <h2>15+ Labs. No Boring Theory.</h2>
+        <p>Students learn by doing — not watching.</p>
+    </div>
+    <div class="module-grid">
+        <div class="module-landing-card"><div class="module-accent" style="background:#00ff88;"></div><div class="module-body"><span class="module-tag-pill">Class 11–12</span><div style="font-size:32px;margin:12px 0 8px">⚡</div><h3>Neural Network Lab</h3><p>Build and visualize custom neural networks layer by layer. Run forward passes in real time.</p></div></div>
+        <div class="module-landing-card"><div class="module-accent" style="background:#4d96ff;"></div><div class="module-body"><span class="module-tag-pill">Class 11–12</span><div style="font-size:32px;margin:12px 0 8px">🔍</div><h3>RAG Pipeline Visualizer</h3><p>Step through retrieval-augmented generation with real chunk scoring and vector similarity.</p></div></div>
+        <div class="module-landing-card"><div class="module-accent" style="background:#ff8c00;"></div><div class="module-body"><span class="module-tag-pill">Class 12</span><div style="font-size:32px;margin:12px 0 8px">🤖</div><h3>Agent Flow Visualizer</h3><p>Watch multi-agent systems plan, execute tools, and reflect — step by step.</p></div></div>
+        <div class="module-landing-card"><div class="module-accent" style="background:#b15eff;"></div><div class="module-body"><span class="module-tag-pill">Class 11–12</span><div style="font-size:32px;margin:12px 0 8px">🎛️</div><h3>LLM Parameters Lab</h3><p>Tune temperature, top-k, top-p and see instant quality/cost tradeoffs live.</p></div></div>
+        <div class="module-landing-card"><div class="module-accent" style="background:#00e5ff;"></div><div class="module-body"><span class="module-tag-pill">Class 10–12</span><div style="font-size:32px;margin:12px 0 8px">🔵</div><h3>K-Means Clustering</h3><p>Drag data points, watch clusters form. Understand unsupervised learning visually.</p></div></div>
+        <div class="module-landing-card"><div class="module-accent" style="background:#00ff88;"></div><div class="module-body"><span class="module-tag-pill">Class 10–12</span><div style="font-size:32px;margin:12px 0 8px">🌳</div><h3>Decision Tree Lab</h3><p>Build classification trees. See how algorithms split data at each node.</p></div></div>
+        <div class="module-landing-card"><div class="module-accent" style="background:#ff6bca;"></div><div class="module-body"><span class="module-tag-pill">Class 11–12</span><div style="font-size:32px;margin:12px 0 8px">👁️</div><h3>Attention Mechanism</h3><p>Visualize self-attention heatmaps. Understand how Transformers focus on tokens.</p></div></div>
+        <div class="module-landing-card"><div class="module-accent" style="background:#4d96ff;"></div><div class="module-body"><span class="module-tag-pill">Class 8–10</span><div style="font-size:32px;margin:12px 0 8px">🔌</div><h3>Logic Gates Lab</h3><p>Build digital logic circuits from scratch. The foundation of all computing.</p></div></div>
+        <div class="module-landing-card"><div class="module-accent" style="background:#ff8c00;"></div><div class="module-body"><span class="module-tag-pill">Class 8–10</span><div style="font-size:32px;margin:12px 0 8px">📊</div><h3>Data Sorting Visualizer</h3><p>Watch bubble sort, merge sort, and quicksort in animated slow motion.</p></div></div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     HOW IT WORKS
+═══════════════════════════════════════════════ -->
+<div id="how-it-works" class="section" style="background: var(--bg-secondary); max-width: 100%; padding: 100px 40px;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <div class="section-title">
+            <span class="eyebrow">How It Works</span>
+            <h2>Up and running in under 10 minutes</h2>
+            <p>No IT team needed. No app downloads. Just a browser and a join code.</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <h3>School Signs Up</h3>
+                <p>Fill the inquiry form below. We set up your school's account within 24 hours and send login credentials to the principal or IT coordinator.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <h3>Students Join via Code</h3>
+                <p>Teacher shares an 8-character join code (e.g. AILAB8C3) on WhatsApp or classroom board. Students visit the link and are instantly enrolled.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">3</div>
+                <h3>Teacher Tracks Progress</h3>
+                <p>Real-time dashboard shows XP earned, modules completed, streaks, and a class leaderboard. Export CSV reports for PTMs in one click.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     COMPARISON TABLE
+═══════════════════════════════════════════════ -->
+<div class="section">
+    <div class="section-title">
+        <span class="eyebrow">Differentiators</span>
+        <h2>Why AI Lab wins</h2>
+        <p>Compare honestly — we did.</p>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th class="highlight">AI Lab ✓</th>
+                    <th>YouTube / Tutorials</th>
+                    <th>Textbooks</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Live AI Chat (Claude)</td>
+                    <td class="highlight"><span class="check">✓</span> Real-time streaming</td>
+                    <td><span class="cross">✗</span> Pre-recorded only</td>
+                    <td><span class="cross">✗</span> None</td>
+                </tr>
+                <tr>
+                    <td>Interactive Simulators</td>
+                    <td class="highlight"><span class="check">✓</span> 15+ labs</td>
+                    <td><span class="cross">✗</span> Passive watching</td>
+                    <td><span class="cross">✗</span> Diagrams only</td>
+                </tr>
+                <tr>
+                    <td>Teacher Dashboard</td>
+                    <td class="highlight"><span class="check">✓</span> Real-time, per student</td>
+                    <td><span class="cross">✗</span> No visibility</td>
+                    <td><span class="cross">✗</span> Manual grading</td>
+                </tr>
+                <tr>
+                    <td>Grade-wise Curriculum</td>
+                    <td class="highlight"><span class="check">✓</span> Class 8–12 specific</td>
+                    <td><span class="partial">~</span> Generic content</td>
+                    <td><span class="partial">~</span> Outdated by 3–5 yrs</td>
+                </tr>
+                <tr>
+                    <td>Gamification (XP, Badges)</td>
+                    <td class="highlight"><span class="check">✓</span> Built-in</td>
+                    <td><span class="cross">✗</span> None</td>
+                    <td><span class="cross">✗</span> None</td>
+                </tr>
+                <tr>
+                    <td>App Download Required</td>
+                    <td class="highlight"><span class="check">✓</span> Browser only</td>
+                    <td><span class="partial">~</span> App + data use</td>
+                    <td><span class="check">✓</span> None</td>
+                </tr>
+                <tr>
+                    <td>Price per Student / Year</td>
+                    <td class="highlight" style="color: var(--accent-green); font-weight: 700;">₹300/student</td>
+                    <td>Free but unstructured</td>
+                    <td>₹400–800 per book</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PRICING
+═══════════════════════════════════════════════ -->
+<div id="pricing" class="section" style="background: var(--bg-secondary); max-width: 100%; padding: 100px 40px;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <div class="section-title">
+            <span class="eyebrow">Pricing</span>
+            <h2>Simple, honest pricing</h2>
+            <p>No hidden fees. Cancel anytime. Discounts for large schools.</p>
+        </div>
+        <div class="pricing-grid">
+            <!-- Student -->
+            <div class="pricing-card">
+                <div class="pricing-label">Individual Student</div>
+                <div class="pricing-price"><span class="currency">₹</span>499<span class="period">/mo</span></div>
+                <div class="pricing-sub">or ₹4,999/year (save 2 months)</div>
+                <ul class="pricing-features">
+                    <li>Full access to all 7 modules</li>
+                    <li>15+ interactive labs</li>
+                    <li>Live Claude AI chat</li>
+                    <li>XP, badges & leaderboard</li>
+                    <li>Learning path tracking</li>
+                </ul>
+                <a href="/register/" class="btn btn-outline" style="width:100%; justify-content:center;">Start Free Trial</a>
+            </div>
+            <!-- School -->
+            <div class="pricing-card featured">
+                <div class="pricing-badge">Most Popular</div>
+                <div class="pricing-label">School Plan</div>
+                <div class="pricing-price"><span class="currency">₹</span>15,000<span class="period">/yr</span></div>
+                <div class="pricing-sub">50 students · ₹300/student · One invoice</div>
+                <ul class="pricing-features">
+                    <li>Up to 50 student accounts</li>
+                    <li>Teacher dashboard + reports</li>
+                    <li>Classroom join codes</li>
+                    <li>CSV progress exports</li>
+                    <li>Weekly email summaries</li>
+                    <li>School branding in sidebar</li>
+                    <li>Priority WhatsApp support</li>
+                </ul>
+                <a href="#inquiry" class="btn btn-green" style="width:100%; justify-content:center;">Book Free Demo</a>
+            </div>
+            <!-- Enterprise -->
+            <div class="pricing-card">
+                <div class="pricing-label">Enterprise / Chain</div>
+                <div class="pricing-price" style="font-size: 36px;">Custom</div>
+                <div class="pricing-sub">Multi-campus · 200+ students · SLA</div>
+                <ul class="pricing-features">
+                    <li>Unlimited students</li>
+                    <li>Multi-campus management</li>
+                    <li>Custom module content</li>
+                    <li>LMS / ERP integration</li>
+                    <li>Dedicated account manager</li>
+                    <li>On-site teacher training</li>
+                </ul>
+                <a href="mailto:hello@ailab.in" class="btn btn-outline" style="width:100%; justify-content:center;">Contact Sales</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SCHOOL INQUIRY FORM
+═══════════════════════════════════════════════ -->
+<div id="inquiry" class="inquiry-section">
+    <div class="section">
+        <div class="section-title">
+            <span class="eyebrow">Get Started</span>
+            <h2>Get a Free Demo for Your School</h2>
+            <p>We'll set up a 20-minute live demo with your principal. No commitment required.</p>
+        </div>
+        <div class="inquiry-form">
+            {% if messages %}
+            <div style="background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; color: var(--accent-green); font-weight: 600;">
+                {% for message in messages %}{{ message }}{% endfor %}
+            </div>
+            {% endif %}
+            <form method="POST" action="/welcome/#inquiry">
+                {% csrf_token %}
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="id_school_name">School Name *</label>
+                        {{ form.school_name }}
+                        {% if form.school_name.errors %}<div class="form-error">{{ form.school_name.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_city">City *</label>
+                        {{ form.city }}
+                        {% if form.city.errors %}<div class="form-error">{{ form.city.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_contact_name">Your Name *</label>
+                        {{ form.contact_name }}
+                        {% if form.contact_name.errors %}<div class="form-error">{{ form.contact_name.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_contact_phone">Phone Number *</label>
+                        {{ form.contact_phone }}
+                        {% if form.contact_phone.errors %}<div class="form-error">{{ form.contact_phone.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_contact_email">Email Address *</label>
+                        {{ form.contact_email }}
+                        {% if form.contact_email.errors %}<div class="form-error">{{ form.contact_email.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_student_count">Number of Students *</label>
+                        {{ form.student_count }}
+                        {% if form.student_count.errors %}<div class="form-error">{{ form.student_count.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-group full">
+                        <label for="id_interested_plan">Interested In *</label>
+                        {{ form.interested_plan }}
+                        {% if form.interested_plan.errors %}<div class="form-error">{{ form.interested_plan.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-group full">
+                        <label for="id_message">Message (optional)</label>
+                        {{ form.message }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center;">
+                    🏫 Submit Inquiry — We'll contact you within 24 hrs
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FAQ
+═══════════════════════════════════════════════ -->
+<div id="faq" class="section">
+    <div class="section-title">
+        <span class="eyebrow">FAQ</span>
+        <h2>Common questions</h2>
+    </div>
+    <div class="faq-list">
+        {% for q, a in faq_items %}
+        <div class="faq-item">
+            <input type="checkbox" class="faq-toggle" id="faq{{ forloop.counter }}">
+            <label class="faq-question" for="faq{{ forloop.counter }}">
+                <span>{{ q }}</span>
+                <span class="faq-chevron">+</span>
+            </label>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">{{ a }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════ -->
+<footer class="landing-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                <div class="nav-logo-icon">🧠</div>
+                <span style="font-size:18px;font-weight:800;">AI Lab</span>
+            </div>
+            <p>India's first interactive AI/ML learning platform built for Class 8–12 students. Live Claude AI, 15+ simulators, and real teacher dashboards.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Platform</h4>
+            <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="/login/">Student Login</a></li>
+                <li><a href="/register/">Register Free</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Contact</h4>
+            <ul>
+                <li><a href="mailto:hello@ailab.in">hello@ailab.in</a></li>
+                <li><a href="https://wa.me/919876543210">WhatsApp Us</a></li>
+                <li><a href="#inquiry">Book a Demo</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2025 AI Lab. Built for Indian schools. 🇮🇳</span>
+        <span>Privacy · Terms</span>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block title %}UI Components Showcase — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.showcase-section {
+    margin-bottom: 80px;
+}
+
+.showcase-header {
+    text-align: center;
+    padding: 60px 40px;
+    background: radial-gradient(circle, rgba(0, 255, 136, 0.1), transparent 70%);
+    border-radius: 32px;
+    margin-bottom: 60px;
+    border: 1px solid var(--border);
+}
+
+.showcase-header h1 {
+    font-size: 48px;
+    font-weight: 800;
+    margin-bottom: 16px;
+}
+
+.showcase-header p {
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+.component-demo {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 24px;
+}
+
+.demo-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.demo-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+.demo-preview {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 20px;
+}
+
+.demo-code {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.demo-code code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent-green);
+}
+
+.color-swatch {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    margin: 8px;
+    border: 1px solid var(--border);
+}
+
+.typography-sample {
+    margin: 16px 0;
+    padding: 16px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="showcase-header">
+    <h1>🎨 UI Components Showcase</h1>
+    <p>Interactive demonstration of all available UI/UX components</p>
+</div>
+
+<!-- Buttons -->
+<div class="showcase-section">
+    <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 32px;">Buttons</h2>
+    
+    <div class="component-demo">
+        <div class="demo-title">Button Variants</div>
+        <div class="demo-desc">Different button styles for various actions</div>
+        <div class="demo-preview">
+            <button class="btn btn-primary btn-ripple" style="margin: 8px;">Primary Button</button>
+            <button class="btn btn-secondary" style="margin: 8px;">Secondary Button</button>
+            <button class="btn btn-green" style="margin: 8px;">Success Button</button>
+            <button class="btn btn-primary" disabled style="margin: 8px;">Disabled Button</button>
+        </div>
+        <div class="demo-code">
+            <code>&lt;button class="btn btn-primary btn-ripple"&gt;Primary&lt;/button&gt;</code>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notifications -->
+<div class="showcase-section">
+    <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 32px;">Toast Notifications</h2>
+    
+    <div class="component-demo">
+        <div class="demo-title">Toast System</div>
+        <div class="demo-desc">Non-intrusive notifications for user feedback</div>
+        <div class="demo-preview">
+            <button class="btn btn-primary" onclick="UIKit.toast.success('Success! Operation completed.')" style="margin: 8px;">
+                Show Success Toast
+            </button>
+            <button class="btn btn-secondary" onclick="UIKit.toast.error('Error! Something went wrong.')" style="margin: 8px;">
+                Show Error Toast
+            </button>
+            <button class="btn btn-secondary" onclick="UIKit.toast.info('Info: New feature available!')" style="margin: 8px;">
+                Show Info Toast
+            </button>
+        </div>
+        <div class="demo-code">
+            <code>UIKit.toast.success('Success message');</code>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Bars -->
+<div class="showcase-section">
+    <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 32px;">Progress Indicators</h2>
+    
+    <div class="component-demo">
+        <div class="demo-title">Progress Bar</div>
+        <div class="demo-desc">Visual feedback for loading states</div>
+        <div class="demo-preview">
+            <button class="btn btn-primary" onclick="demoProgress()" style="margin: 8px;">
+                Show Progress Bar
+            </button>
+            <button class="btn btn-secondary" onclick="UIKit.progress.indeterminate(); setTimeout(() => UIKit.progress.hide(), 3000)" style="margin: 8px;">
+                Indeterminate Progress
+            </button>
+        </div>
+        <div class="demo-code">
+            <code>UIKit.progress.set(50); // 50%</code>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="showcase-section">
+    <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 32px;">Modals</h2>
+    
+    <div class="component-demo">
+        <div class="demo-title">Modal Dialog</div>
+        <div class="demo-desc">Overlay dialogs for important actions</div>
+        <div class="demo-preview">
+            <button class="btn btn-primary" onclick="demoModal()" style="margin: 8px;">
+                Open Modal
+            </button>
+        </div>
+        <div class="demo-code">
+            <code>UIKit.modal.create({ title: 'Title', content: '&lt;p&gt;Content&lt;/p&gt;' });</code>
+        </div>
+    </div>
+</div>
+
+<!-- Cards -->
+<div class="showcase-section">
+    <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 32px;">Cards</h2>
+    
+    <div class="component-demo">
+        <div class="demo-title">Card Variants</div>
+        <div class="demo-desc">Different card styles with hover effects</div>
+        <div class="demo-preview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+            <div class="card">
+                <h4 style="margin-bottom: 8px;">Basic Card</h4>
+                <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Simple card with border</p>
+            </div>
+            <div class="card card-hover-lift">
+                <h4 style="margin-bottom: 8px;">Hover Lift Card</h4>
+                <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Lifts on hover</p>
+            </div>
+            <div class="card card-glow">
+                <h4 style="margin-bottom: 8px;">Glow Card</h4>
+                <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Glows on hover</p>
+            </div>
+        </div>
+        <div class="demo-code">
+            <code>&lt;div class="card card-hover-lift"&gt;...&lt;/div&gt;</code>
+        </div>
+    </div>
+</div>
+
+<!-- Loading States -->
+<div class="showcase-section">
+    <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 32px;">Loading States</h2>
+    
+    <div class="component-demo">
+        <div class="demo-title">Skeleton & Spinner</div>
+        <div class="demo-desc">Loading placeholders and spinners</div>
+        <div class="demo-preview">
+            <div style="display: flex; gap: 32px; align-items: center;">
+                <div class="spinner"></div>
+                <div style="flex: 1;">
+                    <div class="skeleton" style="height: 20px; margin-bottom: 12px;"></div>
+                    <div class="skeleton" style="height: 20px; width: 80%;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="demo-code">
+            <code>&lt;div class="spinner"&gt;&lt;/div&gt;<br>&lt;div class="skeleton"&gt;&lt;/div&gt;</code>
+        </div>
+    </div>
+</div>
+
+<!-- Color Palette -->
+<div class="showcase-section">
+    <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 32px;">Color Palette</h2>
+    
+    <div class="component-demo">
+        <div class="demo-title">Design System Colors</div>
+        <div class="demo-desc">Semantic color usage throughout the platform</div>
+        <div class="demo-preview">
+            <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+                <div style="text-align: center;">
+                    <div class="color-swatch" style="background: var(--accent-green);"></div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Green</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="color-swatch" style="background: var(--accent-orange);"></div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Orange</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="color-swatch" style="background: var(--accent-blue);"></div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Blue</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="color-swatch" style="background: var(--accent-purple);"></div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Purple</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="color-swatch" style="background: var(--accent-pink);"></div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Pink</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="color-swatch" style="background: var(--accent-red);"></div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Red</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Typography -->
+<div class="showcase-section">
+    <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 32px;">Typography</h2>
+    
+    <div class="component-demo">
+        <div class="demo-title">Type Scale</div>
+        <div class="demo-desc">Consistent typography hierarchy</div>
+        <div class="demo-preview">
+            <div class="typography-sample" style="font-size: 48px; font-weight: 800;">Heading 1</div>
+            <div class="typography-sample" style="font-size: 36px; font-weight: 800;">Heading 2</div>
+            <div class="typography-sample" style="font-size: 24px; font-weight: 700;">Heading 3</div>
+            <div class="typography-sample" style="font-size: 18px; font-weight: 600;">Heading 4</div>
+            <div class="typography-sample" style="font-size: 16px;">Body Large</div>
+            <div class="typography-sample" style="font-size: 14px;">Body Regular</div>
+            <div class="typography-sample" style="font-size: 12px; color: var(--text-muted);">Caption</div>
+            <div class="typography-sample" style="font-family: 'JetBrains Mono', monospace; font-size: 14px;">Code / Monospace</div>
+        </div>
+    </div>
+</div>
+
+<!-- Empty State -->
+<div class="showcase-section">
+    <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 32px;">Empty States</h2>
+    
+    <div class="component-demo">
+        <div class="demo-title">Empty State Component</div>
+        <div class="demo-desc">Friendly messages when no content is available</div>
+        <div class="demo-preview">
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-title">No Items Found</div>
+                <div class="empty-state-desc">Try adjusting your filters or create a new item</div>
+                <button class="btn btn-primary">Create New Item</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function demoProgress() {
+    let progress = 0;
+    UIKit.progress.show();
+    const interval = setInterval(() => {
+        progress += 10;
+        UIKit.progress.set(progress);
+        if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                UIKit.progress.hide();
+                UIKit.toast.success('Progress complete!');
+            }, 500);
+        }
+    }, 200);
+}
+
+function demoModal() {
+    const modal = UIKit.modal.create({
+        title: 'Example Modal',
+        content: `
+            <p style="margin-bottom: 16px;">This is a modal dialog with custom content.</p>
+            <p style="color: var(--text-secondary);">You can include any HTML content here, including forms, images, or interactive elements.</p>
+        `,
+        footer: `
+            <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+            <button class="btn btn-primary" onclick="UIKit.toast.success('Action confirmed!'); this.closest('.modal-overlay').remove()">Confirm</button>
+        `
+    });
+}
+</script>
+{% endblock %}

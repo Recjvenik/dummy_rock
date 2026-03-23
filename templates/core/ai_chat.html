@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+{% block title %}AI Assistant — AI Lab{% endblock %}
+{% block nav_chat %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Premium AI Assistant Redesign */
+.chat-page-container {
+height: calc(100vh - 120px);
+display: grid;
+grid-template-columns: 320px 1fr;
+gap: 0;
+margin: -20px -40px; /* Offset parent padding */
+}
+
+/* Sidebar Styling */
+.chat-control-panel {
+background: var(--bg-card);
+border-right: 1px solid var(--border);
+padding: 32px 24px;
+display: flex;
+flex-direction: column;
+gap: 32px;
+overflow-y: auto;
+}
+
+.cp-section-title {
+font-size: 11px;
+font-weight: 800;
+text-transform: uppercase;
+color: var(--text-muted);
+letter-spacing: 0.1em;
+margin-bottom: 16px;
+}
+
+.topic-selector { display: flex; flex-direction: column; gap: 4px; }
+.topic-pill {
+padding: 10px 16px;
+border-radius: 12px;
+font-size: 13px;
+font-weight: 600;
+color: var(--text-secondary);
+cursor: pointer;
+transition: all 0.2s;
+border: 1px solid transparent;
+}
+.topic-pill:hover { background: rgba(255, 255, 255, 0.02); color: var(--text-primary); }
+.topic-pill.active {
+background: rgba(0, 255, 136, 0.08);
+border-color: rgba(0, 255, 136, 0.2);
+color: var(--accent-green);
+}
+
+/* Chat Main Area */
+.chat-main {
+display: flex;
+flex-direction: column;
+background: radial-gradient(circle at 50% 0%, rgba(77, 150, 255, 0.03), transparent 60%);
+position: relative;
+overflow: hidden;
+}
+
+.messages-viewport {
+flex: 1;
+overflow-y: auto;
+padding: 60px 0;
+display: flex;
+flex-direction: column;
+}
+
+.message-wrapper {
+max-width: 800px;
+width: 90%;
+margin: 0 auto 40px;
+display: flex;
+gap: 24px;
+}
+
+.message-wrapper.user { justify-content: flex-end; }
+
+.ai-avatar {
+width: 36px;
+height: 36px;
+border-radius: 10px;
+background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 18px;
+flex-shrink: 0;
+}
+
+.chat-prose {
+font-size: 16px;
+line-height: 1.7;
+color: var(--text-primary);
+width: 100%;
+}
+
+.chat-prose h3 { font-size: 20px; font-weight: 800; margin: 24px 0 12px; }
+.chat-prose p { margin-bottom: 16px; }
+.chat-prose code { background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: var(--accent-blue);
+font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+.chat-prose pre { background: #0d1117; padding: 20px; border-radius: 16px; border: 1px solid var(--border); margin: 24px
+0; }
+
+.user-bubble {
+background: var(--bg-card);
+border: 1px solid var(--border);
+padding: 16px 24px;
+border-radius: 20px 20px 4px 20px;
+max-width: 80%;
+font-size: 15px;
+box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Input Area */
+.chat-footer {
+padding: 0 40px 40px;
+}
+
+.input-container {
+max-width: 800px;
+margin: 0 auto;
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 24px;
+padding: 8px;
+display: flex;
+flex-direction: column;
+box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+transition: border-color 0.3s;
+}
+
+.input-container:focus-within { border-color: var(--accent-green); }
+
+.chat-textarea {
+width: 100%;
+background: transparent;
+border: none;
+padding: 16px 20px;
+color: var(--text-primary);
+font-size: 16px;
+resize: none;
+outline: none;
+min-height: 60px;
+max-height: 300px;
+}
+
+.input-actions {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 8px 12px;
+}
+
+.metrics-pill {
+display: flex;
+gap: 12px;
+font-size: 11px;
+color: var(--text-muted);
+}
+
+.send-btn-premium {
+background: var(--accent-green);
+color: #000;
+border: none;
+border-radius: 14px;
+padding: 8px 20px;
+font-weight: 800;
+display: flex;
+align-items: center;
+gap: 8px;
+cursor: pointer;
+transition: all 0.2s;
+}
+
+.send-btn-premium:hover { transform: scale(1.02); background: #00e67a; }
+.send-btn-premium:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Typing Effect */
+.typing-wave { display: flex; gap: 4px; margin-top: 10px; }
+.dot { width: 5px; height: 5px; background: var(--accent-green); border-radius: 50%; animation: wave 1.3s linear
+infinite; }
+.dot:nth-child(2) { animation-delay: -1.1s; }
+.dot:nth-child(3) { animation-delay: -0.9s; }
+
+@keyframes wave { 0%, 60%, 100% { transform: initial; } 30% { transform: translateY(-5px); } }
+
+@media (max-width: 800px) {
+.chat-page-container { grid-template-columns: 1fr; }
+.chat-control-panel { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-page-container">
+    <!-- Sidebar -->
+    <aside class="chat-control-panel">
+        <div>
+            <div class="cp-section-title">Knowledge Context</div>
+            <div class="topic-selector">
+                <div class="topic-pill active" onclick="setTopic('default', this)">🧠 General Assistant</div>
+                <div class="topic-pill" onclick="setTopic('ai_basics', this)">📚 AI Foundations</div>
+                <div class="topic-pill" onclick="setTopic('rag', this)">🔍 RAG Architecture</div>
+                <div class="topic-pill" onclick="setTopic('agent', this)">🤖 Agentic workflows</div>
+            </div>
+        </div>
+
+        <div>
+            <div class="cp-section-title">Code Explorer</div>
+            <div
+                style="background:var(--bg-secondary); border-radius:16px; padding:16px; border:1px solid var(--border);">
+                <div style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">Search the AI Lab codebase
+                    using semantic indexing.</div>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="code-search" placeholder="e.g. attention, rag..."
+                        style="flex:1; background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12px; color:#fff; outline:none;">
+                    <button onclick="exploreCode()" class="btn btn-secondary"
+                        style="padding:8px 12px; font-size:12px;">Go</button>
+                </div>
+                <div id="code-results" style="margin-top:12px; max-height:200px; overflow-y:auto; display:none;"></div>
+            </div>
+        </div>
+
+        <div style="margin-top:auto;">
+            <div class="cp-section-title">Assistant Status</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:12px; text-align:center;">
+                    <div id="msg-count" style="font-size:18px; font-weight:800; color:var(--accent-green);">0</div>
+                    <div style="font-size:9px; color:var(--text-muted); text-transform:uppercase;">Messages</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:12px; text-align:center;">
+                    <div id="token-count" style="font-size:18px; font-weight:800; color:var(--accent-blue);">0</div>
+                    <div style="font-size:9px; color:var(--text-muted); text-transform:uppercase;">Tokens</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Chat content -->
+    <main class="chat-main">
+        <div class="messages-viewport" id="chat-viewport">
+            <!-- Initial Message -->
+            <div class="message-wrapper">
+                <div class="ai-avatar">🧠</div>
+                <div class="chat-prose">
+                    <p>Welcome to your <strong>AI Research Assistant</strong>. I have real-time access to the
+                        curriculum, simulation engines, and your personal learning path.</p>
+                    <p>How can I assist your experiments today?</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            <div class="input-container">
+                <textarea id="chat-input" class="chat-textarea" placeholder="Message your AI Lab Assistant..." rows="1"
+                    oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"
+                    onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendMessage(); }"></textarea>
+                <div class="input-actions">
+                    <div class="metrics-pill" id="last-metrics" style="opacity:0;">
+                        <span>⚡ <span id="m-latency">0ms</span></span>
+                        <span>💎 <span id="m-cost">$0</span></span>
+                    </div>
+                    <button id="send-btn" class="send-btn-premium" onclick="sendMessage()">
+                        <span>Send</span>
+                        <span style="font-size:12px;">↵</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script>
+    marked.setOptions({ breaks: true, gfm: true });
+
+    let ws = null;
+    let topic = 'default';
+    let history = [];
+    let totals = { tokens: 0, msgs: 0 };
+
+    function connect() {
+        const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+        ws = new WebSocket(`${proto}://${location.host}/ws/ai/chat/`);
+        ws.onmessage = handleMessage;
+        ws.onclose = () => setTimeout(connect, 2000);
+    }
+    connect();
+
+    let streamingWrapper = null;
+    let streamingText = "";
+    let startTime = 0;
+
+    function handleMessage(e) {
+        const data = JSON.parse(e.data);
+        if (data.type === 'stream_start') {
+            startTime = Date.now();
+            streamingText = "";
+            streamingWrapper = addAiWrapper();
+        } else if (data.type === 'stream_chunk') {
+            streamingText += data.text;
+            streamingWrapper.querySelector('.chat-prose').innerHTML = marked.parse(streamingText) + '<div class="typing-wave"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+            scroll();
+        } else if (data.type === 'stream_end') {
+            streamingWrapper.querySelector('.chat-prose').innerHTML = marked.parse(streamingText);
+            history.push({ role: 'assistant', content: streamingText });
+            updateMetrics(data.metrics, Date.now() - startTime);
+            document.getElementById('send-btn').disabled = false;
+        }
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text || !ws || ws.readyState !== 1) return;
+
+        addUserMessage(text);
+        history.push({ role: 'user', content: text });
+
+        input.value = '';
+        input.style.height = '';
+        document.getElementById('send-btn').disabled = true;
+
+        ws.send(JSON.stringify({
+            message: text,
+            history: history.slice(-8),
+            topic: topic
+        }));
+    }
+
+    function addUserMessage(text) {
+        const vp = document.getElementById('chat-viewport');
+        const wrap = document.createElement('div');
+        wrap.className = 'message-wrapper user';
+        wrap.innerHTML = `<div class="user-bubble">${text}</div>`;
+        vp.appendChild(wrap);
+        scroll();
+    }
+
+    function addAiWrapper() {
+        const vp = document.getElementById('chat-viewport');
+        const wrap = document.createElement('div');
+        wrap.className = 'message-wrapper';
+        wrap.innerHTML = `<div class="ai-avatar">🧠</div><div class="chat-prose"><div class="typing-wave"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+        vp.appendChild(wrap);
+        scroll();
+        return wrap;
+    }
+
+    function scroll() { const v = document.getElementById('chat-viewport'); v.scrollTop = v.scrollHeight; }
+
+    function updateMetrics(m, lat) {
+        totals.tokens += m.output_tokens;
+        totals.msgs++;
+        document.getElementById('token-count').textContent = totals.tokens.toLocaleString();
+        document.getElementById('msg-count').textContent = totals.msgs;
+
+        const pill = document.getElementById('last-metrics');
+        pill.style.opacity = '1';
+        document.getElementById('m-latency').textContent = lat + 'ms';
+        document.getElementById('m-cost').textContent = '$' + m.cost_usd.toFixed(4);
+    }
+
+    function setTopic(t, el) {
+        topic = t;
+        document.querySelectorAll('.topic-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    async function exploreCode() {
+        const query = document.getElementById('code-search').value;
+        const results = document.getElementById('code-results');
+        results.innerHTML = '<div style="font-size:11px; color:var(--text-muted);">Searching...</div>';
+        results.style.display = 'block';
+
+        const res = await fetch('/api/ai/code-explore/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, mode: 'search' })
+        });
+        const data = await res.json();
+
+        results.innerHTML = (data.raw_results || []).map(s => `
+            <div onclick="askSymbol('${s.id}', '${s.name}')" style="padding:8px; background:rgba(0,0,0,0.1); border-radius:8px; margin-bottom:4px; font-size:11px; cursor:pointer; border:1px solid transparent; transition:0.2s;" onmouseover="this.style.borderColor='var(--accent-blue)'" onmouseout="this.style.borderColor='transparent'">
+                <div style="color:var(--accent-cyan); font-weight:700;">${s.kind} · ${s.name}</div>
+                <div style="font-size:10px; color:var(--text-muted);">${s.file}</div>
+            </div>
+        `).join('') || '<div style="font-size:11px; color:var(--text-muted);">No results found.</div>';
+    }
+
+    function askSymbol(id, name) {
+        document.getElementById('chat-input').value = `Explain the \`${name}\` code structure in this project.`;
+        sendMessage();
+    }
+</script>
+{% endblock %}

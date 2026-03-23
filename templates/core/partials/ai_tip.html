@@ -1,0 +1,40 @@
+<!-- AI Personalized Tip -->
+<div style="background:linear-gradient(135deg,rgba(177,94,255,0.06),rgba(77,150,255,0.06));border:1px solid rgba(177,94,255,0.2);border-radius:16px;padding:24px;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div class="pulse-dot" style="background:var(--accent-purple);"></div>
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent-purple);">Claude AI Tip</div>
+    </div>
+    {% if ai_tip %}
+    <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;" id="ai-tip-content">
+        {{ ai_tip }}
+    </div>
+    {% else %}
+    <!-- Skeleton loader while tip loads -->
+    <div id="ai-tip-skeleton">
+        <div style="height:14px;background:var(--bg-hover);border-radius:4px;margin-bottom:8px;animation:skeleton 1.5s ease infinite;width:90%;"></div>
+        <div style="height:14px;background:var(--bg-hover);border-radius:4px;margin-bottom:8px;animation:skeleton 1.5s ease infinite 0.1s;width:80%;"></div>
+        <div style="height:14px;background:var(--bg-hover);border-radius:4px;animation:skeleton 1.5s ease infinite 0.2s;width:70%;"></div>
+    </div>
+    <div id="ai-tip-content" style="font-size:14px;color:var(--text-secondary);line-height:1.6;display:none;"></div>
+    <script>
+    (function() {
+        {% if not request.user.is_authenticated %}return;{% endif %}
+        const FALLBACK = 'Keep exploring — every module you complete brings you closer to mastering AI! · Try a new simulation today for hands-on practice. · Review the glossary daily to strengthen your vocabulary.';
+        function showTip(text) {
+            const el = document.getElementById('ai-tip-content');
+            const sk = document.getElementById('ai-tip-skeleton');
+            if (el) { el.textContent = text; el.style.display = 'block'; }
+            if (sk) sk.style.display = 'none';
+        }
+        fetch('/api/ai/learning-tips/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({user_id: '{{ request.user.pk }}'})
+        })
+        .then(r => r.json())
+        .then(data => { showTip(data.tip || FALLBACK); })
+        .catch(() => { showTip(FALLBACK); });
+    })();
+    </script>
+    {% endif %}
+</div>

@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% block title %}LLM Parameters Lab — AI Lab{% endblock %}
+{% block nav_llmparams %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.llm-hero { margin-bottom: 48px; }
+.llm-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.llm-hero h1 span {
+background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.llm-workspace {
+display: grid;
+grid-template-columns: 340px 1fr;
+gap: 32px;
+}
+
+.tuning-station {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 28px;
+padding: 32px;
+height: fit-content;
+position: sticky;
+top: 40px;
+}
+
+.parameter-group { margin-bottom: 24px; }
+.param-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+.param-label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing:
+0.1em; }
+.param-value { font-size: 14px; font-weight: 800; color: var(--accent-orange); font-family: 'JetBrains Mono', monospace;
+}
+
+.premium-slider {
+-webkit-appearance: none;
+width: 100%;
+height: 4px;
+background: var(--border);
+border-radius: 100px;
+outline: none;
+}
+.premium-slider::-webkit-slider-thumb {
+-webkit-appearance: none;
+width: 18px;
+height: 18px;
+border-radius: 50%;
+background: var(--accent-orange);
+cursor: pointer;
+box-shadow: 0 0 15px rgba(255, 140, 0, 0.4);
+border: 2px solid var(--bg-card);
+}
+
+.metrics-dashboard {
+background: #09090b;
+border: 1px solid var(--border);
+border-radius: 32px;
+padding: 40px;
+}
+
+.metric-strip {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 20px;
+margin-bottom: 40px;
+}
+
+.premium-metric-card {
+background: rgba(255, 255, 255, 0.02);
+border: 1px solid var(--border);
+border-radius: 20px;
+padding: 24px;
+text-align: center;
+}
+
+.met-val { font-size: 40px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+.met-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); }
+
+.attribute-grid {
+display: grid;
+gap: 24px;
+}
+
+.attribute-row {
+display: flex;
+align-items: center;
+gap: 20px;
+}
+
+.attr-name { width: 140px; font-size: 14px; font-weight: 700; color: var(--text-secondary); }
+.attr-bar-track { flex: 1; height: 10px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; }
+.attr-bar-fill { height: 100%; border-radius: 100px; transition: width 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
+.attr-pct { width: 50px; text-align: right; font-size: 13px; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+}
+
+.insight-premium {
+margin-top: 40px;
+background: linear-gradient(135deg, rgba(255, 140, 0, 0.05), rgba(255, 60, 0, 0.05));
+border: 1px solid rgba(255, 140, 0, 0.2);
+border-radius: 20px;
+padding: 24px;
+display: flex;
+gap: 16px;
+align-items: flex-start;
+}
+
+@media (max-width: 1000px) {
+.llm-workspace { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="llm-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>LLM Parameters</span>
+    </div>
+    <h1>Inference<br><span>Tuning Command</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Master the levers of large
+        language models. Fine-tune the probability distributions to optimize latency and creativity.</p>
+</div>
+
+<div class="llm-workspace">
+    <!-- Configuration -->
+    <aside class="tuning-station">
+        <label class="param-label">Model Architecture</label>
+        <select id="model-size" onchange="tune()" class="nn-input-field" style="margin-top:12px;">
+            <option value="3B">Llama 3B (Edge Speed)</option>
+            <option value="7B" selected>Llama 7B (Optimal)</option>
+            <option value="13B">Llama 13B (Precision)</option>
+            <option value="70B">Llama 70B (State-of-Art)</option>
+            <option value="claude-opus">Claude 3.5 Opus ⭐</option>
+        </select>
+
+        <div class="parameter-group">
+            <div class="param-header"><span class="param-label">Temperature</span><span class="param-value"
+                    id="val-temp">0.7</span></div>
+            <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7" class="premium-slider"
+                oninput="tune()">
+        </div>
+
+        <div class="parameter-group">
+            <div class="param-header"><span class="param-label">Top-P (Nucleus)</span><span class="param-value"
+                    id="val-topp">0.9</span></div>
+            <input type="range" id="top-p" min="0.1" max="1.0" step="0.05" value="0.9" class="premium-slider"
+                oninput="tune()">
+        </div>
+
+        <div class="parameter-group">
+            <div class="param-header"><span class="param-label">Top-K (Filtering)</span><span class="param-value"
+                    id="val-topk">50</span></div>
+            <input type="range" id="top-k" min="1" max="100" step="1" value="50" class="premium-slider"
+                oninput="tune()">
+        </div>
+
+        <div class="parameter-group">
+            <div class="param-header"><span class="param-label">Context Size</span><span class="param-value"
+                    id="val-chunk">512</span></div>
+            <input type="range" id="chunk-size" min="128" max="2048" step="128" value="512" class="premium-slider"
+                oninput="tune()">
+        </div>
+
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;" class="param-label">
+            <input type="checkbox" id="reranking" onchange="tune()"> Feature Neural Rerank
+        </label>
+    </aside>
+
+    <!-- Metrics visualization -->
+    <main class="metrics-dashboard">
+        <div class="metric-strip">
+            <div class="premium-metric-card">
+                <div class="met-val text-orange" id="m-latency">0ms</div>
+                <div class="met-lbl">Runtime Latency</div>
+            </div>
+            <div class="premium-metric-card">
+                <div class="met-val text-green" id="m-cost">$0.00</div>
+                <div class="met-lbl">Inference Cost</div>
+            </div>
+        </div>
+
+        <h3
+            style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:32px;">
+            Quality & Efficiency Vectors</h3>
+
+        <div class="attribute-grid">
+            <div class="attribute-row">
+                <div class="attr-name">🎯 Semantic Accuracy</div>
+                <div class="attr-bar-track">
+                    <div class="attr-bar-fill" id="bar-acc" style="background:var(--accent-green); width:0%"></div>
+                </div>
+                <div class="attr-pct" id="pct-acc">0%</div>
+            </div>
+            <div class="attribute-row">
+                <div class="attr-name">⚠️ Entropy Risk</div>
+                <div class="attr-bar-track">
+                    <div class="attr-bar-fill" id="bar-risk" style="background:var(--accent-red); width:0%"></div>
+                </div>
+                <div class="attr-pct" id="pct-risk">0%</div>
+            </div>
+            <div class="attribute-row">
+                <div class="attr-name">🎨 Creative Variance</div>
+                <div class="attr-bar-track">
+                    <div class="attr-bar-fill" id="bar-var" style="background:var(--accent-blue); width:0%"></div>
+                </div>
+                <div class="attr-pct" id="pct-var">0%</div>
+            </div>
+            <div class="attribute-row">
+                <div class="attr-name">⚡ Throughput</div>
+                <div class="attr-bar-track">
+                    <div class="attr-bar-fill" id="bar-speed" style="background:#fff; width:0%"></div>
+                </div>
+                <div class="attr-pct" id="pct-speed">0%</div>
+            </div>
+        </div>
+
+        <div class="insight-premium">
+            <div style="font-size:24px;">💡</div>
+            <div>
+                <div
+                    style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">
+                    Technical Insight</div>
+                <div id="insight-text" style="font-size:14px; color:var(--text-primary); line-height:1.6;">Adjust
+                    parameters to begin real-time analysis simulation.</div>
+            </div>
+        </div>
+
+        <div
+            style="margin-top:48px; padding:32px; background:rgba(255,255,255,0.01); border:1px dashed var(--border); border-radius:24px; display:grid; grid-template-columns:repeat(3,1fr); gap:20px; text-align:center;">
+            <div>
+                <div id="stat-tokens" style="font-size:24px; font-weight:800; color:var(--accent-blue);">0</div>
+                <div style="font-size:10px; color:var(--text-muted); font-weight:800;">TOTAL TOKENS</div>
+            </div>
+            <div>
+                <div id="stat-tps" style="font-size:24px; font-weight:800; color:var(--accent-green);">0</div>
+                <div style="font-size:10px; color:var(--text-muted); font-weight:800;">TOKENS / SEC</div>
+            </div>
+            <div>
+                <div id="stat-tpd" style="font-size:24px; font-weight:800; color:var(--accent-orange);">0</div>
+                <div style="font-size:10px; color:var(--text-muted); font-weight:800;">TOKENS / DOLLAR</div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function tune() {
+        const temp = document.getElementById('temperature').value;
+        const topp = document.getElementById('top-p').value;
+        const topk = document.getElementById('top-k').value;
+        const chunk = document.getElementById('chunk-size').value;
+
+        document.getElementById('val-temp').textContent = temp;
+        document.getElementById('val-topp').textContent = topp;
+        document.getElementById('val-topk').textContent = topk;
+        document.getElementById('val-chunk').textContent = chunk;
+
+        const params = {
+            temperature: parseFloat(temp),
+            top_p: parseFloat(topp),
+            top_k: parseInt(topk),
+            model_size: document.getElementById('model-size').value,
+            chunk_size: parseInt(chunk),
+            reranking: document.getElementById('reranking').checked
+        };
+
+        try {
+            const res = await fetch('/api/simulations/llm-params/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+            const d = await res.json();
+
+            document.getElementById('m-latency').textContent = d.latency_ms + 'ms';
+            document.getElementById('m-cost').textContent = '$' + d.cost_usd.toFixed(4);
+
+            // Bar updates
+            const set = (id, val) => {
+                document.getElementById('bar-' + id).style.width = val + '%';
+                document.getElementById('pct-' + id).textContent = val + (id === 'var' ? 'pt' : '%');
+            };
+            set('acc', d.accuracy_pct);
+            set('risk', d.hallucination_risk_pct);
+            set('var', d.diversity_score);
+            set('speed', Math.max(10, Math.round(100 - (d.latency_ms / 30))));
+
+            // Stats
+            document.getElementById('stat-tokens').textContent = d.estimated_tokens;
+            document.getElementById('stat-tps').textContent = Math.round(d.estimated_tokens / (d.latency_ms / 1000));
+            document.getElementById('stat-tpd').textContent = d.cost_usd > 0 ? Math.round(d.estimated_tokens / d.cost_usd).toLocaleString() : '∞';
+
+            // Insight
+            let text = "";
+            if (params.temperature > 1.2) text = "Entropy levels are critical. Creative variance is peaking, leading to high hallucination risk. Recommended for exploratory brainstorming only.";
+            else if (params.temperature < 0.4) text = "High determinism detected. Response tokens will be focused and precise. Ideal for technical documentation and code analysis.";
+            else text = "Optimal balanced configuration. The model maintains 90%+ semantic accuracy while retaining enough entropy for natural articulation.";
+            document.getElementById('insight-text').textContent = text;
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    tune();
+</script>
+{% endblock %}

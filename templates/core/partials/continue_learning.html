@@ -1,0 +1,12 @@
+<!-- Continue Learning Card -->
+{% if last_progress %}
+<div style="background:linear-gradient(135deg,rgba(0,255,136,0.06),rgba(77,150,255,0.06));border:1px solid rgba(0,255,136,0.2);border-radius:16px;padding:24px;margin-bottom:24px;">
+    <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent-green);margin-bottom:12px;">▶ Continue Learning</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px;">{{ last_progress.module.title }}</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Last studied {{ last_progress.last_accessed|timesince }} ago</div>
+    <div style="background:var(--bg-secondary);border-radius:4px;height:6px;overflow:hidden;margin-bottom:16px;">
+        <div style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent-green),var(--accent-blue));width:{{ last_progress.score|default:20 }}%;"></div>
+    </div>
+    <a href="/learn/{{ last_progress.module.slug }}/" class="btn btn-green" style="font-size:13px;padding:8px 18px;">Resume Module →</a>
+</div>
+{% endif %}

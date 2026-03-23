@@ -1,0 +1,28 @@
+<!-- Mini Leaderboard (top 5) -->
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);">🏆 Leaderboard</div>
+        <a href="/leaderboard/" style="font-size:12px;color:var(--accent-blue);text-decoration:none;">View all</a>
+    </div>
+    {% if top_users %}
+    <div style="display:flex;flex-direction:column;gap:8px;">
+        {% for entry in top_users %}
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:8px;background:{% if entry.user == request.user %}rgba(0,255,136,0.06){% else %}transparent{% endif %};">
+            <div style="font-size:14px;font-weight:800;min-width:24px;
+                color:{% if forloop.counter == 1 %}#ffd700{% elif forloop.counter == 2 %}#c0c0c0{% elif forloop.counter == 3 %}#cd7f32{% else %}var(--text-muted){% endif %};">
+                {{ forloop.counter }}
+            </div>
+            <div style="flex:1;font-size:13px;font-weight:{% if entry.user == request.user %}700{% else %}500{% endif %};">
+                {{ entry.user.get_full_name|default:entry.user.username }}
+                {% if entry.user == request.user %}<span style="color:var(--accent-green);font-size:11px;"> (you)</span>{% endif %}
+            </div>
+            <div style="font-size:12px;font-weight:700;color:var(--accent-green);">⚡ {{ entry.xp }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
+        Start earning XP to appear on the leaderboard!
+    </div>
+    {% endif %}
+</div>

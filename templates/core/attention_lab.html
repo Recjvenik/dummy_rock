@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block title %}Attention Mechanism Lab — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.attn-hero { margin-bottom: 48px; }
+.attn-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.attn-hero h1 span {
+background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.attn-layout {
+display: grid;
+grid-template-columns: 340px 1fr;
+gap: 32px;
+}
+
+.attn-controls {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 28px;
+padding: 32px;
+height: fit-content;
+position: sticky;
+top: 40px;
+}
+
+.heatmap-viewport {
+background: #09090b;
+border: 1px solid var(--border);
+border-radius: 32px;
+padding: 60px;
+display: flex;
+flex-direction: column;
+align-items: center;
+box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
+}
+
+.grid-wrapper {
+position: relative;
+padding: 40px;
+}
+
+#attn-grid {
+display: grid;
+gap: 4px;
+padding: 2px;
+border: 1px solid var(--border);
+background: rgba(255,255,255,0.02);
+border-radius: 12px;
+}
+
+.attn-cell {
+width: 60px;
+height: 60px;
+border-radius: 8px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 11px;
+font-weight: 800;
+cursor: pointer;
+transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.attn-cell:hover {
+transform: scale(1.15);
+z-index: 10;
+box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.token-label-wrap {
+font-weight: 800;
+font-size: 11px;
+color: var(--text-muted);
+text-transform: uppercase;
+letter-spacing: 0.1em;
+}
+
+.premium-stat {
+margin-top: 40px;
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 16px;
+}
+
+.stat-cell {
+background: rgba(255, 255, 255, 0.02);
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 20px;
+}
+
+.stat-val { font-size: 20px; font-weight: 800; display: block; }
+.stat-lbl { font-size: 9px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+
+.insight-card {
+background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(77, 150, 255, 0.05));
+border: 1px solid rgba(0, 255, 136, 0.2);
+border-radius: 20px;
+padding: 32px;
+margin-top: 40px;
+}
+
+@media (max-width: 1000px) {
+.attn-layout { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="attn-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>Attention Lab</span>
+    </div>
+    <h1>Transformer<br><span>Semantic Mapping</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Visualize the internal
+        weights of the Attention mechanism—the engine behind Modern LLMs.</p>
+</div>
+
+<div class="attn-layout">
+    <!-- Configuration -->
+    <aside class="attn-controls">
+        <label class="param-label">Attention Sequence</label>
+        <textarea id="seq-input" class="nn-input-field"
+            style="margin-top:12px; height:100px;">The cat sat on the mat and ate the fish.</textarea>
+
+        <label class="param-label" style="display:block; margin-top:12px;">Temperature Scale</label>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span class="param-value"
+                style="font-size:10px;">Focused</span><span class="param-value" style="font-size:10px;">Diffuse</span>
+        </div>
+        <input type="range" id="temperature" min="1" max="30" value="10" step="1" class="premium-slider"
+            style="margin-bottom:24px;">
+
+        <button onclick="runAttention()" class="btn btn-green"
+            style="width:100%; height:50px; border-radius:14px; font-weight:800; color:#000;">⚡ Map Weights →</button>
+
+        <div id="quick-links" style="margin-top:24px; padding-top:24px; border-top:1px solid var(--border);">
+            <div
+                style="font-size:10px; font-weight:800; color:var(--text-muted); margin-bottom:12px; text-transform:uppercase;">
+                Try Sentences</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                <span onclick="loadText(this)" class="badge"
+                    style="cursor:pointer; background:rgba(255,255,255,0.05); border:1px solid var(--border);">AI is
+                    future</span>
+                <span onclick="loadText(this)" class="badge"
+                    style="cursor:pointer; background:rgba(255,255,255,0.05); border:1px solid var(--border);">Robots
+                    learn fast</span>
+                <span onclick="loadText(this)" class="badge"
+                    style="cursor:pointer; background:rgba(255,255,255,0.05); border:1px solid var(--border);">Neural
+                    nets think</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Map Viewport -->
+    <main>
+        <div class="heatmap-viewport">
+            <div id="heatmap-container">
+                <div style="text-align:center; padding:100px; color:var(--text-muted);">
+                    <div style="font-size:40px; margin-bottom:16px;">👁️</div>
+                    <div>Awaiting sequence initialization...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="premium-stat" id="stat-panel" style="display:none;">
+            <div class="stat-cell"><span class="stat-val" id="stat-tokens">0</span><span class="stat-lbl">Tokens</span>
+            </div>
+            <div class="stat-cell"><span class="stat-val" style="color:var(--accent-blue);"
+                    id="stat-entropy">0.0</span><span class="stat-lbl">Entropy Index</span></div>
+            <div class="stat-cell"><span class="stat-val" style="color:var(--accent-green);"
+                    id="stat-dim">128</span><span class="stat-lbl">Dimensions</span></div>
+        </div>
+
+        <div id="ins-panel" style="display:none;">
+            <div class="insight-card">
+                <div
+                    style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px;">
+                    Relationship Analysis</div>
+                <div id="insight-text" style="font-size:16px; color:var(--text-primary); line-height:1.7;">Select a
+                    token in the heatmap to see localized attention weight distribution.</div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function loadText(el) { document.getElementById('seq-input').value = el.textContent; }
+
+    async function runAttention() {
+        const seq = document.getElementById('seq-input').value.trim();
+        const temp = parseFloat(document.getElementById('temperature').value) / 10;
+
+        const res = await fetch('/api/simulations/attention/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sequence: seq, temperature: temp })
+        });
+        const data = await res.json();
+
+        renderHeatmap(data);
+        document.getElementById('stat-tokens').textContent = data.tokens.length;
+        document.getElementById('stat-entropy').textContent = data.entropy;
+        document.getElementById('stat-panel').style.display = 'grid';
+        document.getElementById('ins-panel').style.display = 'block';
+    }
+
+    function renderHeatmap(data) {
+        const container = document.getElementById('heatmap-container');
+        const tokens = data.tokens;
+        const weights = data.attention_weights;
+        const n = tokens.length;
+
+        const grid = document.createElement('div');
+        grid.id = 'attn-grid';
+        grid.style.gridTemplateColumns = `80px repeat(${n}, 60px)`;
+
+        // Key Axis
+        grid.appendChild(document.createElement('div'));
+        tokens.forEach(t => {
+            const el = document.createElement('div');
+            el.className = 'token-label-wrap';
+            el.style.cssText = 'height:40px; display:flex; align-items:center; justify-content:center; text-align:center;';
+            el.textContent = t;
+            grid.appendChild(el);
+        });
+
+        // Query Rows
+        tokens.forEach((q, i) => {
+            const qEl = document.createElement('div');
+            qEl.className = 'token-label-wrap';
+            qEl.style.cssText = 'height:60px; display:flex; align-items:center; padding-right:12px; justify-content:flex-end;';
+            qEl.textContent = q;
+            grid.appendChild(qEl);
+
+            weights[i].forEach((w, j) => {
+                const cell = document.createElement('div');
+                cell.className = 'attn-cell';
+                const alpha = Math.pow(w, 0.6);
+                cell.style.background = `rgba(0, 255, 136, ${0.05 + alpha * 0.95})`;
+                cell.style.color = alpha > 0.4 ? '#000' : '#fff';
+                cell.textContent = w.toFixed(2);
+                cell.onclick = () => explain(i, data);
+                grid.appendChild(cell);
+            });
+        });
+
+        container.innerHTML = '';
+        container.appendChild(grid);
+    }
+
+    function explain(idx, data) {
+        const token = data.tokens[idx];
+        const top = data.top_attention[idx].top_attends_to;
+        const txt = document.getElementById('insight-text');
+
+        let html = `<p>Token <strong>"${token}"</strong> currently attends most heavily to:</p><ul style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0;">`;
+        top.forEach(t => {
+            html += `<li style="background:rgba(0,255,136,0.1); padding:8px 12px; border-radius:10px; font-weight:800; font-size:13px; color:var(--accent-green);">${t.token} (${(t.weight * 100).toFixed(1)}%)</li>`;
+        });
+        html += `</ul><p style="margin-top:16px; font-size:13px; color:var(--text-muted);">In a transformer, this weight distribution determines how context is flowed into the next hidden state representation.</p>`;
+        txt.innerHTML = html;
+    }
+</script>
+{% endblock %}

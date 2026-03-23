@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% block title %}Neural Network Lab — AI Lab{% endblock %}
+{% block nav_nn %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.nn-hero { margin-bottom: 48px; }
+.nn-hero h1 {
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    margin-top: 16px;
+}
+.nn-hero h1 span {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nn-workspace {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 32px;
+}
+
+.nn-controls-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px;
+    height: fit-content;
+    position: sticky;
+    top: 40px;
+}
+
+.nn-canvas-panel {
+    background: #09090b;
+    border: 1px solid var(--border);
+    border-radius: 32px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
+}
+
+.nn-canvas {
+    width: 100%;
+    height: 500px;
+}
+
+.control-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.nn-input-field {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    margin-bottom: 24px;
+}
+.nn-input-field:focus { border-color: var(--accent-blue); }
+
+.stat-grid-premium {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+}
+
+.net-stat-box {
+    text-align: center;
+}
+.net-stat-val { font-size: 24px; font-weight: 800; color: var(--text-primary); }
+.net-stat-lbl { font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+
+.activation-preview {
+    margin-top: 24px;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+@media (max-width: 1000px) {
+    .nn-workspace { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="nn-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>Neural Network Lab</span>
+    </div>
+    <h1>Synthetic<br><span>Neuron Playground</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Architect your own
+        intelligence. Design deep neural architectures and witness semantic signal propagation.</p>
+</div>
+
+<div class="nn-workspace">
+    <!-- Configuration -->
+    <aside class="nn-controls-card">
+        <label class="control-label">Network Topology</label>
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Neurons per layer (e.g. 4,8,8,2)</div>
+        <input type="text" id="layers-input" class="nn-input-field" value="4,8,6,2">
+
+        <label class="control-label">Activation Function</label>
+        <select id="activation" class="nn-input-field" onchange="buildNetwork()">
+            <option value="relu">ReLU (Standard)</option>
+            <option value="sigmoid">Sigmoid (Logistic)</option>
+            <option value="tanh">Hyperbolic Tangent</option>
+            <option value="linear">Linear Identity</option>
+        </select>
+
+        <div style="display:grid; gap:12px;">
+            <button onclick="buildNetwork()" class="btn btn-primary"
+                style="height:50px; border-radius:14px; background:var(--accent-blue); color:#fff; border:none; font-weight:800;">⚡
+                Rebuild Network</button>
+            <button onclick="runForward()" class="btn btn-secondary"
+                style="height:50px; border-radius:14px; font-weight:800;">▶ Trigger Pulse</button>
+        </div>
+
+        <div class="activation-preview">
+            <div
+                style="font-size:10px; font-weight:800; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase;">
+                Non-Linearity Visualizer</div>
+            <canvas id="act-canvas" width="250" height="80"></canvas>
+        </div>
+
+        <div class="stat-grid-premium">
+            <div class="net-stat-box">
+                <div class="net-stat-val" id="stat-neurons">20</div>
+                <div class="net-stat-lbl">Neurons</div>
+            </div>
+            <div class="net-stat-box">
+                <div class="net-stat-val" id="stat-weights" style="color:var(--accent-blue);">112</div>
+                <div class="net-stat-lbl">Synapses</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Interactive Canvas -->
+    <main class="nn-canvas-panel">
+        <canvas id="nn-canvas" class="nn-canvas"></canvas>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const canvas = document.getElementById('nn-canvas');
+    const ctx = canvas.getContext('2d');
+    let network = null;
+
+    function resize() {
+        canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+        canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', () => { resize(); if (network) draw(); });
+    resize();
+
+    async function buildNetwork() {
+        const layers = document.getElementById('layers-input').value.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= 20);
+        const activation = document.getElementById('activation').value;
+
+        const res = await fetch('/api/simulations/neural-network/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ layers, activation })
+        });
+        network = await res.json();
+
+        let counts = { n: 0, w: 0 };
+        layers.forEach(l => counts.n += l);
+        for (let i = 0; i < layers.length - 1; i++) counts.w += layers[i] * layers[i + 1];
+
+        document.getElementById('stat-neurons').textContent = counts.n;
+        document.getElementById('stat-weights').textContent = counts.w;
+
+        drawActivation(activation);
+        draw();
+    }
+
+    function draw() {
+        const W = canvas.offsetWidth, H = canvas.offsetHeight;
+        ctx.clearRect(0, 0, W, H);
+
+        const layers = network.layers;
+        const xStep = W / (layers.length + 1);
+        const coords = [];
+
+        layers.forEach((l, li) => {
+            const x = xStep * (li + 1);
+            const yStep = H / (l.neurons.length + 1);
+            coords.push(l.neurons.map((n, ni) => ({
+                x, y: yStep * (ni + 1), val: n.value, type: l.layer_type
+            })));
+        });
+
+        // Weights
+        ctx.strokeStyle = 'rgba(77, 150, 255, 0.08)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < coords.length - 1; i++) {
+            coords[i].forEach(src => {
+                coords[i + 1].forEach(dst => {
+                    ctx.beginPath();
+                    ctx.moveTo(src.x, src.y);
+                    ctx.lineTo(dst.x, dst.y);
+                    ctx.stroke();
+                });
+            });
+        }
+
+        // Neurons
+        coords.forEach((l, li) => {
+            l.forEach(p => {
+                const intens = (p.val + 1) / 2;
+                const baseColor = p.type === 'input' ? '0, 255, 136' : p.type === 'output' ? '255, 140, 0' : '77, 150, 255';
+
+                // Glow
+                const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 25);
+                grad.addColorStop(0, `rgba(${baseColor}, ${0.1 + intens * 0.3})`);
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 25, 0, Math.PI * 2); ctx.fill();
+
+                // Core
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
+                ctx.fillStyle = '#09090b';
+                ctx.fill();
+                ctx.strokeStyle = `rgba(${baseColor}, ${0.4 + intens * 0.6})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = '#fff';
+                ctx.font = '800 9px "JetBrains Mono"';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(p.val.toFixed(1), p.x, p.y);
+            });
+
+            // Labels
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.font = '700 10px Inter';
+            const label = li === 0 ? 'INPUT' : li === coords.length - 1 ? 'OUTPUT' : `HIDDEN ${li}`;
+            ctx.fillText(label, l[0].x, H - 20);
+        });
+    }
+
+    async function runForward() {
+        if (!network) return;
+        for (let i = 0; i < network.layers.length; i++) {
+            // Simulate pulse
+            drawActiveLayer(i);
+            await new Promise(r => setTimeout(r, 400));
+        }
+        draw();
+    }
+
+    function drawActiveLayer(idx) {
+        draw();
+        // Overlay active state
+        const W = canvas.offsetWidth, H = canvas.offsetHeight;
+        const xStep = W / (network.layers.length + 1);
+        const x = xStep * (idx + 1);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath(); ctx.moveTo(x, 40); ctx.lineTo(x, H - 40); ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawActivation(type) {
+        const c = document.getElementById('act-canvas');
+        const x = c.getContext('2d');
+        x.clearRect(0, 0, c.width, c.height);
+        const fns = {
+            relu: v => Math.max(0, v),
+            sigmoid: v => 1 / (1 + Math.exp(-v)),
+            tanh: v => Math.tanh(v),
+            linear: v => v
+        };
+        const color = type === 'relu' ? '#00ff88' : type === 'sigmoid' ? '#4d96ff' : '#b15eff';
+        x.strokeStyle = color;
+        x.lineWidth = 2;
+        x.beginPath();
+        for (let i = 0; i < c.width; i++) {
+            const val = (i / c.width) * 10 - 5;
+            const y = fns[type](val);
+            const py = c.height / 2 - y * (c.height * 0.3);
+            i === 0 ? x.moveTo(i, py) : x.lineTo(i, py);
+        }
+        x.stroke();
+        x.fillStyle = 'rgba(255,255,255,0.05)';
+        x.beginPath(); x.moveTo(0, c.height / 2); x.lineTo(c.width, c.height / 2); x.stroke();
+    }
+
+    buildNetwork();
+</script>
+{% endblock %}

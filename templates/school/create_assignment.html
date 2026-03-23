@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Assign Module — {{ classroom.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/school.css' %}">
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:8px;font-size:13px;color:var(--text-muted);">
+    <a href="/school/" style="color:var(--accent-blue);text-decoration:none;">Dashboard</a> /
+    <a href="/school/classroom/{{ classroom.pk }}/" style="color:var(--accent-blue);text-decoration:none;">{{ classroom.name }}</a> /
+    Assign Module
+</div>
+
+<div class="form-panel">
+    <h2>Assign Module to {{ classroom.name }}</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="fp-group">
+            <label for="title">Assignment Title *</label>
+            <input type="text" id="title" name="title" placeholder="e.g. Complete AI Basics by Friday" required>
+        </div>
+        <div class="fp-group">
+            <label for="module_id">Module *</label>
+            <select id="module_id" name="module_id" required>
+                <option value="">Select a module...</option>
+                {% for module in modules %}
+                <option value="{{ module.pk }}">{{ module.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="fp-group">
+            <label for="due_date">Due Date (optional)</label>
+            <input type="date" id="due_date" name="due_date">
+        </div>
+        <div class="fp-group">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="active">Active (visible to students now)</option>
+                <option value="draft">Draft (save for later)</option>
+            </select>
+        </div>
+        <div class="fp-group">
+            <label for="instructions">Instructions (optional)</label>
+            <textarea id="instructions" name="instructions" rows="3" placeholder="Any specific instructions for students..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:12px;">
+            <button type="submit" class="btn btn-green">Create Assignment</button>
+            <a href="/school/classroom/{{ classroom.pk }}/" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

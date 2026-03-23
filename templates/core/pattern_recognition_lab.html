@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block title %}Pattern Recognition Lab — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.pattern-hero { margin-bottom: 48px; text-align: center; }
+.pattern-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.pattern-hero h1 span {
+background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.pattern-container {
+max-width: 900px;
+margin: 0 auto;
+}
+
+.challenge-theater {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 32px;
+padding: 60px;
+text-align: center;
+position: relative;
+overflow: hidden;
+box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+}
+
+.challenge-theater::after {
+content: "";
+position: absolute;
+inset: 0;
+background: radial-gradient(circle at 50% 0%, rgba(177, 94, 255, 0.05), transparent 70%);
+pointer-events: none;
+}
+
+.sequence-stage {
+display: flex;
+justify-content: center;
+gap: 16px;
+margin: 60px 0;
+}
+
+.sequence-box {
+width: 72px;
+height: 72px;
+background: var(--bg-secondary);
+border: 1px solid var(--border);
+border-radius: 16px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 28px;
+font-weight: 800;
+color: var(--accent-blue);
+box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sequence-box.mystery {
+background: rgba(177, 94, 255, 0.05);
+border: 2px dashed var(--accent-purple);
+color: var(--text-muted);
+}
+
+.sequence-box:hover { transform: translateY(-5px); border-color: var(--accent-blue); }
+
+.interaction-zone {
+max-width: 400px;
+margin: 0 auto;
+position: relative;
+z-index: 2;
+}
+
+.premium-input-wrap {
+display: flex;
+gap: 12px;
+margin-bottom: 32px;
+}
+
+.pattern-input {
+flex: 1;
+background: #09090b;
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 16px 24px;
+font-size: 24px;
+font-weight: 800;
+color: #fff;
+text-align: center;
+outline: none;
+transition: 0.3s;
+}
+
+.pattern-input:focus { border-color: var(--accent-purple); box-shadow: 0 0 20px rgba(177, 94, 255, 0.1); }
+
+.feedback-pill {
+min-height: 24px;
+font-size: 14px;
+font-weight: 800;
+text-transform: uppercase;
+letter-spacing: 0.1em;
+margin-bottom: 24px;
+}
+
+.feedback-correct { color: var(--accent-green); }
+.feedback-wrong { color: #f43f5e; }
+
+.heuristic-rule {
+background: rgba(255, 255, 255, 0.02);
+border: 1px solid var(--border);
+border-radius: 20px;
+padding: 24px;
+margin-top: 40px;
+display: none;
+animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.config-mini {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 32px;
+}
+
+.mode-badge {
+padding: 4px 12px;
+background: rgba(255,255,255,0.05);
+border: 1px solid var(--border);
+border-radius: 100px;
+font-size: 10px;
+font-weight: 800;
+color: var(--text-muted);
+text-transform: uppercase;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pattern-hero">
+    <div class="breadcrumb"
+        style="font-size:13px; color:var(--text-muted); margin-bottom:16px; justify-content:center; display:flex;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>Pattern Recognition</span>
+    </div>
+    <h1>Heuristic<br><span>Logic Challenges</span></h1>
+    <p
+        style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px; margin-left:auto; margin-right:auto;">
+        Unlock the core skill of synthetic intelligence: Identifying recurring signals in complex sequences.</p>
+</div>
+
+<div class="pattern-container">
+    <div class="challenge-theater">
+        <div class="config-mini">
+            <span class="mode-badge" id="diff-badge">Domain: Numerical Analysis</span>
+            <select id="pattern-type" onchange="next()"
+                style="background:transparent; border:none; color:var(--accent-blue); font-size:12px; font-weight:800; outline:none; cursor:pointer;">
+                <option value="number">Integer Sequences</option>
+                <option value="letter">Character Proliferation</option>
+            </select>
+        </div>
+
+        <div class="sequence-stage" id="sequence-view"></div>
+
+        <div id="feedback-view" class="feedback-pill"></div>
+
+        <div class="interaction-zone">
+            <div class="premium-input-wrap">
+                <input type="text" id="ans-in" class="pattern-input" placeholder="?" autocomplete="off">
+                <button onclick="check()" class="btn btn-primary"
+                    style="padding:0 32px; background:var(--accent-purple); color:#fff; border:none; border-radius:16px; font-weight:800;">Verify</button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <button onclick="hint()" class="btn btn-secondary"
+                    style="border-radius:12px; font-size:12px; font-weight:800;">💡 Request Hint</button>
+                <button onclick="next()" class="btn btn-secondary"
+                    style="border-radius:12px; font-size:12px; font-weight:800;">⏭ Next Session</button>
+            </div>
+        </div>
+
+        <div id="rule-view" class="heuristic-rule">
+            <div
+                style="font-size:10px; font-weight:800; color:var(--accent-purple); text-transform:uppercase; margin-bottom:8px; letter-spacing:0.1em;">
+                Heuristic Verification</div>
+            <div id="rule-text" style="font-size:16px; font-weight:700; color:var(--text-primary); line-height:1.6;">
+            </div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:12px;">The pattern follows a consistent
+                mathematical transformation.</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let challenge = null;
+
+    async function next() {
+        const type = document.getElementById('pattern-type').value;
+        const res = await fetch('/api/simulations/pattern-recognition/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: type })
+        });
+        challenge = await res.json();
+
+        document.getElementById('diff-badge').textContent = `Domain: ${type === 'number' ? 'Numerical Analysis' : 'Linguistic Logic'}`;
+        document.getElementById('rule-view').style.display = 'none';
+        document.getElementById('feedback-view').textContent = '';
+        document.getElementById('ans-in').value = '';
+        document.getElementById('ans-in').focus();
+
+        render(challenge.sequence);
+    }
+
+    function render(seq) {
+        const view = document.getElementById('sequence-view');
+        view.innerHTML = '';
+        seq.forEach(v => {
+            const el = document.createElement('div');
+            el.className = 'sequence-box';
+            el.textContent = v;
+            view.appendChild(el);
+        });
+        const mystery = document.createElement('div');
+        mystery.className = 'sequence-box mystery';
+        mystery.textContent = '?';
+        view.appendChild(mystery);
+    }
+
+    function check() {
+        const input = document.getElementById('ans-in').value.trim();
+        if (!input) return;
+
+        const isCorrect = input.toLowerCase() == challenge.correct_answer.toString().toLowerCase();
+        const fv = document.getElementById('feedback-view');
+
+        if (isCorrect) {
+            fv.innerHTML = '<span class="feedback-correct">✅ Signal Verified: Success</span>';
+            document.getElementById('rule-text').textContent = challenge.rule;
+            document.getElementById('rule-view').style.display = 'block';
+        } else {
+            fv.innerHTML = '<span class="feedback-wrong">❌ Error: Logical Discrepancy Found</span>';
+        }
+    }
+
+    function hint() {
+        document.getElementById('feedback-view').innerHTML = `💡 <span style="color:var(--text-primary);">${challenge.hint}</span>`;
+    }
+
+    document.getElementById('ans-in').onkeypress = (e) => { if (e.key === 'Enter') check(); };
+    next();
+</script>
+{% endblock %}

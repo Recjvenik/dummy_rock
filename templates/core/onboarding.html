@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block title %}Welcome to AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.onboarding-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.onboarding-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 60px;
+    position: relative;
+}
+
+.onboarding-progress::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+}
+
+.progress-line {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    height: 2px;
+    background: var(--accent-green);
+    transition: width 0.5s ease;
+    z-index: 1;
+}
+
+.step-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s;
+}
+
+.step-indicator.active {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: #000;
+    transform: scale(1.2);
+}
+
+.step-indicator.completed {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: #000;
+}
+
+.onboarding-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 32px;
+    padding: 60px;
+    text-align: center;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.onboarding-icon {
+    font-size: 80px;
+    margin-bottom: 32px;
+}
+
+.onboarding-card h2 {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 16px;
+}
+
+.onboarding-card p {
+    font-size: 18px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+}
+
+.onboarding-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin: 40px 0;
+}
+
+.feature-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+}
+
+.feature-item-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.feature-item h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.feature-item p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .onboarding-card { padding: 40px 24px; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .onboarding-card h2 { font-size: 28px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="onboarding-container">
+    <div class="onboarding-progress">
+        <div class="progress-line" id="progressLine" style="width: 0%;"></div>
+        <div class="step-indicator active" id="step1">1</div>
+        <div class="step-indicator" id="step2">2</div>
+        <div class="step-indicator" id="step3">3</div>
+        <div class="step-indicator" id="step4">4</div>
+    </div>
+
+    <div class="onboarding-card" id="stepContent">
+        <!-- Step 1 -->
+        <div class="step-content" data-step="1">
+            <div class="onboarding-icon">🧠</div>
+            <h2>Welcome to AI Lab</h2>
+            <p>Your journey to mastering Artificial Intelligence starts here. We'll guide you through an interactive learning experience designed for students from Class 8 to 12.</p>
+            <div class="onboarding-actions">
+                <button class="btn btn-primary" onclick="nextStep()">Get Started →</button>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-content" data-step="2" style="display: none;">
+            <div class="onboarding-icon">🎯</div>
+            <h2>Choose Your Path</h2>
+            <p>Select your grade level to get personalized content and learning paths tailored to your curriculum.</p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 32px 0;">
+                <button class="btn btn-secondary" onclick="selectGrade(8)">Class 8</button>
+                <button class="btn btn-secondary" onclick="selectGrade(9)">Class 9</button>
+                <button class="btn btn-secondary" onclick="selectGrade(10)">Class 10</button>
+                <button class="btn btn-secondary" onclick="selectGrade(11)">Class 11</button>
+                <button class="btn btn-secondary" onclick="selectGrade(12)">Class 12</button>
+            </div>
+            <div class="onboarding-actions">
+                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-content" data-step="3" style="display: none;">
+            <div class="onboarding-icon">⚡</div>
+            <h2>Explore Features</h2>
+            <p>AI Lab offers multiple ways to learn and practice AI concepts.</p>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-item-icon">📚</div>
+                    <h4>Interactive Modules</h4>
+                    <p>7 comprehensive modules covering AI fundamentals to advanced topics</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-item-icon">🧪</div>
+                    <h4>Live Simulations</h4>
+                    <p>Visualize neural networks, RAG, agents, and more in real-time</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-item-icon">💬</div>
+                    <h4>AI Assistant</h4>
+                    <p>Chat with Claude Opus 4.5 for instant help and explanations</p>
+                </div>
+            </div>
+            <div class="onboarding-actions">
+                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-content" data-step="4" style="display: none;">
+            <div class="onboarding-icon">🚀</div>
+            <h2>Ready to Begin!</h2>
+            <p>You're all set to start your AI learning journey. Choose where you'd like to begin.</p>
+            <div class="onboarding-actions">
+                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                <a href="/" class="btn btn-green">Explore Modules</a>
+                <a href="/playground/" class="btn btn-primary">Try Labs</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentStep = 1;
+let selectedGrade = null;
+
+function nextStep() {
+    if (currentStep < 4) {
+        document.querySelector(`[data-step="${currentStep}"]`).style.display = 'none';
+        document.getElementById(`step${currentStep}`).classList.remove('active');
+        document.getElementById(`step${currentStep}`).classList.add('completed');
+        
+        currentStep++;
+        
+        document.querySelector(`[data-step="${currentStep}"]`).style.display = 'block';
+        document.getElementById(`step${currentStep}`).classList.add('active');
+        
+        updateProgress();
+        UIKit.toast.success(`Step ${currentStep} of 4`, 2000);
+    }
+}
+
+function prevStep() {
+    if (currentStep > 1) {
+        document.querySelector(`[data-step="${currentStep}"]`).style.display = 'none';
+        document.getElementById(`step${currentStep}`).classList.remove('active');
+        
+        currentStep--;
+        
+        document.querySelector(`[data-step="${currentStep}"]`).style.display = 'block';
+        document.getElementById(`step${currentStep}`).classList.remove('completed');
+        document.getElementById(`step${currentStep}`).classList.add('active');
+        
+        updateProgress();
+    }
+}
+
+function updateProgress() {
+    const progress = ((currentStep - 1) / 3) * 100;
+    document.getElementById('progressLine').style.width = `${progress}%`;
+}
+
+function selectGrade(grade) {
+    selectedGrade = grade;
+    localStorage.setItem('preferredGrade', grade);
+    UIKit.toast.success(`Class ${grade} selected!`, 2000);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' && currentStep < 4) nextStep();
+    if (e.key === 'ArrowLeft' && currentStep > 1) prevStep();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You — AI Lab</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+    <style>
+        .thank-you-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .thank-you-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0,255,136,0.3);
+            border-radius: 24px;
+            padding: 64px 56px;
+            max-width: 560px;
+            width: 100%;
+            text-align: center;
+        }
+        .thank-you-icon { font-size: 72px; margin-bottom: 24px; }
+        .thank-you-card h1 { font-size: 36px; font-weight: 900; margin-bottom: 16px; }
+        .thank-you-card p { color: var(--text-secondary); font-size: 16px; line-height: 1.7; margin-bottom: 12px; }
+        .what-next { margin: 36px 0; text-align: left; background: var(--bg-hover); border-radius: 12px; padding: 24px; }
+        .what-next h3 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 16px; }
+        .what-next li { color: var(--text-secondary); font-size: 14px; padding: 6px 0; list-style: none; display: flex; gap: 10px; }
+        .what-next li::before { content: '→'; color: var(--accent-green); }
+    </style>
+</head>
+<body>
+<div class="thank-you-page">
+    <div class="thank-you-card">
+        <div class="thank-you-icon">🎉</div>
+        <h1>We got your inquiry!</h1>
+        <p>Thank you for reaching out. Our team will contact you within <strong style="color: var(--accent-green);">24 hours</strong> to schedule your free demo.</p>
+        <p>We'll set up a 20-minute live session tailored to your school's grade level and curriculum needs.</p>
+
+        <div class="what-next">
+            <h3>What happens next</h3>
+            <ul>
+                <li>You'll receive a confirmation email shortly</li>
+                <li>Our team will WhatsApp you to schedule the demo</li>
+                <li>We'll run a 20-min live walkthrough with your principal</li>
+                <li>Trial accounts set up same day, if you'd like to proceed</li>
+            </ul>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="/welcome/" class="btn btn-outline">← Back to Home</a>
+            <a href="/" class="btn btn-green">Try the Platform Now →</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

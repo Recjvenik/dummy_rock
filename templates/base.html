@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Lab — From Zero to AI Architect{% endblock %}</title>
+    <meta name="description"
+        content="Learn AI through interactive simulations — not static documentation. Explore Neural Networks, RAG, Agents, LLMs and more.">
+    {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/enhanced.css' %}">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --bg-card: #15151e;
+            --bg-hover: #1c1c28;
+            --border: #2a2a3a;
+            --border-glow: #3a3a5a;
+            --text-primary: #e8e8f0;
+            --text-secondary: #8888aa;
+            --text-muted: #55556a;
+            --accent-green: #00ff88;
+            --accent-orange: #ff8c00;
+            --accent-blue: #4d96ff;
+            --accent-purple: #b15eff;
+            --accent-pink: #ff6bca;
+            --accent-red: #ff4d6d;
+            --accent-cyan: #00e5ff;
+            --sidebar-width: 240px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        code,
+        pre,
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ─── Sidebar ─── */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            padding: 20px 16px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .sidebar-nav {
+            padding: 12px 8px;
+            flex: 1;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            padding: 12px 8px 6px;
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            margin: 1px 0;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-green);
+            border-left: 2px solid var(--accent-green);
+        }
+
+        .nav-icon {
+            width: 16px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        /* ─── Main Content ─── */
+        .main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content {
+            flex: 1;
+            padding: 32px 40px;
+            width: 100%;
+        }
+
+        /* ─── Cards ─── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-1px);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* ─── Module Card ─── */
+        .module-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--card-accent, var(--accent-green));
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .module-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+        }
+
+        .module-card:hover::before {
+            opacity: 1;
+        }
+
+        .module-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .tag-beginner {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent-green);
+        }
+
+        .tag-interactive {
+            background: rgba(0, 229, 255, 0.15);
+            color: var(--accent-cyan);
+        }
+
+        .tag-simulator {
+            background: rgba(255, 107, 202, 0.15);
+            color: var(--accent-pink);
+        }
+
+        .tag-critical {
+            background: rgba(255, 77, 109, 0.15);
+            color: var(--accent-red);
+        }
+
+        .tag-deep-dive {
+            background: rgba(77, 150, 255, 0.15);
+            color: var(--accent-blue);
+        }
+
+        .tag-advanced {
+            background: rgba(177, 94, 255, 0.15);
+            color: var(--accent-purple);
+        }
+
+        .tag-sandbox {
+            background: rgba(255, 140, 0, 0.15);
+            color: var(--accent-orange);
+        }
+
+        .module-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .module-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .module-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .module-explore {
+            color: var(--accent-green);
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            transition: gap 0.2s;
+        }
+
+        .module-explore:hover {
+            gap: 8px;
+        }
+
+        /* ─── Stats Bar ─── */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 32px 0;
+        }
+
+        .stat-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ─── Hero ─── */
+        .hero {
+            padding: 48px 0 32px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            color: var(--accent-green);
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span {
+            color: var(--accent-orange);
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 560px;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent-orange);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #ff9f20;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(255, 140, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--border-glow);
+            background: var(--bg-card);
+        }
+
+        .btn-green {
+            background: var(--accent-green);
+            color: #000;
+        }
+
+        .btn-green:hover {
+            background: #00e57a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+        }
+
+        /* ─── Section Header ─── */
+        .section-header {
+            margin-bottom: 24px;
+        }
+
+        .section-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ─── Concepts Tags ─── */
+        .concept-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .concept-tag {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+
+        .concept-tag:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        /* ─── Breadcrumb ─── */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb span {
+            color: var(--text-secondary);
+        }
+
+        /* ─── Scrollbar ─── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-glow);
+            border-radius: 3px;
+        }
+
+        /* ─── Utility ─── */
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .gap-2 {
+            gap: 8px;
+        }
+
+        .gap-4 {
+            gap: 16px;
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
+
+        .mt-8 {
+            margin-top: 32px;
+        }
+
+        .text-green {
+            color: var(--accent-green);
+        }
+
+        .text-orange {
+            color: var(--accent-orange);
+        }
+
+        .text-blue {
+            color: var(--accent-blue);
+        }
+
+        .text-purple {
+            color: var(--accent-purple);
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* ─── Alert/Insight Box ─── */
+        .insight-box {
+            background: rgba(255, 140, 0, 0.08);
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin: 16px 0;
+        }
+
+        .insight-box .insight-title {
+            color: var(--accent-orange);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        /* ─── Pulse dot ─── */
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        /* ─── Animations ─── */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        /* Mobile Sidebar Toggle */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            border: none;
+            color: #000;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .sidebar-toggle:active {
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            {% if request.school and request.school.logo %}
+            <div class="logo-badge">
+                <img src="{{ request.school.logo.url }}" alt="{{ request.school.name }}" style="height:36px;width:auto;border-radius:8px;object-fit:contain;">
+                <div>
+                    <div class="logo-text">{{ request.school.name|truncatechars:20 }}</div>
+                    <div class="logo-sub">AI Lab Platform</div>
+                </div>
+            </div>
+            {% else %}
+            <div class="logo-badge">
+                <div class="logo-icon">🧠</div>
+                <div>
+                    <div class="logo-text">AI Lab</div>
+                    <div class="logo-sub">Interactive Learning</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-item">
+                <span class="nav-icon">🏠</span> Home
+            </a>
+
+            <div class="nav-label">Modules</div>
+            <a href="/learn/ai-basics/" class="nav-item">
+                <span class="nav-icon">🟢</span> AI Basics
+            </a>
+            <a href="/learn/machine-learning-deep-dive/" class="nav-item">
+                <span class="nav-icon">🟡</span> Machine Learning
+            </a>
+            <a href="/learn/deep-learning-lab/" class="nav-item">
+                <span class="nav-icon">🔵</span> Deep Learning
+            </a>
+            <a href="/learn/generative-ai/" class="nav-item">
+                <span class="nav-icon">🟣</span> Generative AI
+            </a>
+            <a href="/learn/llm-systems/" class="nav-item">
+                <span class="nav-icon">🔴</span> LLM Systems
+            </a>
+            <a href="/learn/agentic-ai/" class="nav-item">
+                <span class="nav-icon">🟠</span> Agentic AI
+            </a>
+            <a href="/learn/ai-playground/" class="nav-item">
+                <span class="nav-icon">🧪</span> AI Playground
+            </a>
+
+            <div class="nav-label">Labs & Labs</div>
+            <a href="/neural-network/" class="nav-item {% block nav_nn %}{% endblock %}">
+                <span class="nav-icon">⚡</span> Neural Network Lab
+            </a>
+            <a href="/rag-visualizer/" class="nav-item {% block nav_rag %}{% endblock %}">
+                <span class="nav-icon">🔍</span> RAG Visualizer
+            </a>
+            <a href="/agent-visualizer/" class="nav-item {% block nav_agent %}{% endblock %}">
+                <span class="nav-icon">🤖</span> Agent Visualizer
+            </a>
+            <a href="/llm-params/" class="nav-item {% block nav_llm %}{% endblock %}">
+                <span class="nav-icon">🎛️</span> LLM Params Lab
+            </a>
+            <a href="/kmeans/" class="nav-item {% block nav_kmeans %}{% endblock %}">
+                <span class="nav-icon">🔵</span> K-Means Lab
+            </a>
+            <a href="/decision-tree/" class="nav-item {% block nav_dt %}{% endblock %}">
+                <span class="nav-icon">🌳</span> Decision Tree Lab
+            </a>
+            <a href="/attention/" class="nav-item {% block nav_attn %}{% endblock %}">
+                <span class="nav-icon">👁️</span> Attention Lab
+            </a>
+            <div class="nav-label">Junior Labs (8-10)</div>
+            <a href="/logic-gates/" class="nav-item {% block nav_logic %}{% endblock %}">
+                <span class="nav-icon">🔌</span> Logic Gates
+            </a>
+            <a href="/data-sorting/" class="nav-item {% block nav_sort %}{% endblock %}">
+                <span class="nav-icon">📊</span> Data Sorting
+            </a>
+            <a href="/pattern-recognition/" class="nav-item {% block nav_pattern %}{% endblock %}">
+                <span class="nav-icon">🧩</span> Patterns
+            </a>
+            <a href="/ai-chat/" class="nav-item {% block nav_chat %}{% endblock %}">
+                <span class="nav-icon">💬</span> AI Assistant
+            </a>
+
+            {% if request.user.is_authenticated and request.user.role in 'teacher,school_admin,admin' %}
+            <div class="nav-label">School</div>
+            <a href="/school/" class="nav-item">
+                <span class="nav-icon">🏫</span> School Dashboard
+            </a>
+            {% endif %}
+
+            <div class="nav-label">For Students</div>
+            <a href="/python-editor/" class="nav-item {% block nav_python %}{% endblock %}">
+                <span class="nav-icon">🐍</span> Python Editor
+            </a>
+            <a href="/learning-paths/" class="nav-item">
+                <span class="nav-icon">🗺️</span> Learning Paths
+            </a>
+            <a href="/glossary/" class="nav-item">
+                <span class="nav-icon">📖</span> Glossary
+            </a>
+            <a href="/concept-explorer/" class="nav-item">
+                <span class="nav-icon">🔗</span> Concept Explorer
+            </a>
+            <a href="/practice-zone/" class="nav-item">
+                <span class="nav-icon">✏️</span> Practice Zone
+            </a>
+        </nav>
+        <div style="padding:12px 8px;border-top:1px solid var(--border);">
+            <div class="nav-label" style="padding-top:4px">Grade Level</div>
+            <select id="gradeSelector" onchange="filterByGrade(this.value)"
+                style="width:100%;padding:6px 10px;border-radius:6px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);font-size:12px;cursor:pointer;">
+                <option value="all">All Grades</option>
+                <option value="8">Class 8</option>
+                <option value="9">Class 9</option>
+                <option value="10">Class 10</option>
+                <option value="11">Class 11</option>
+                <option value="12">Class 12</option>
+            </select>
+        </div>
+        <div style="padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);">
+            <div class="flex items-center gap-2">
+                <div class="pulse-dot"></div>
+                Claude Opus 4.5 Active
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+        <div class="content fade-in">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+    {% block chartjs %}{% endblock %}
+    <script src="{% static 'js/uikit.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+    <script>
+        // Auto-highlight active nav item based on current URL path
+        (function () {
+            const path = window.location.pathname;
+            document.querySelectorAll('.nav-item').forEach(function (el) {
+                const href = el.getAttribute('href');
+                if (href && href !== '/' && path.startsWith(href)) {
+                    el.classList.add('active');
+                } else if (href === '/' && path === '/') {
+                    el.classList.add('active');
+                }
+            });
+            // Auto-select grade from URL params
+            const params = new URLSearchParams(window.location.search);
+            const grade = params.get('grade');
+            if (grade) {
+                const sel = document.getElementById('gradeSelector');
+                if (sel) sel.value = grade;
+            }
+        })();
+        function filterByGrade(grade) {
+            const url = new URL(window.location.href);
+            if (grade && grade !== 'all') {
+                url.searchParams.set('grade', grade);
+            } else {
+                url.searchParams.delete('grade');
+            }
+            url.pathname = '/';
+            window.location.href = url.toString();
+        }
+
+        // Mobile sidebar toggle
+        const sidebarToggle = document.createElement('button');
+        sidebarToggle.className = 'sidebar-toggle';
+        sidebarToggle.innerHTML = '☰';
+        sidebarToggle.setAttribute('aria-label', 'Toggle navigation');
+        document.body.appendChild(sidebarToggle);
+
+        const sidebar = document.querySelector('.sidebar');
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+            sidebarToggle.innerHTML = sidebar.classList.contains('mobile-open') ? '✕' : '☰';
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !sidebarToggle.contains(e.target) &&
+                sidebar.classList.contains('mobile-open')) {
+                sidebar.classList.remove('mobile-open');
+                sidebarToggle.innerHTML = '☰';
+            }
+        });
+
+        // Show welcome toast on first visit
+        if (!sessionStorage.getItem('welcomed')) {
+            setTimeout(() => {
+                UIKit.toast.success('Welcome to AI Lab! 🧠', 3000);
+                sessionStorage.setItem('welcomed', 'true');
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>

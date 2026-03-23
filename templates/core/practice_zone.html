@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block title %}Practice Zone — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.pz-hero { margin-bottom: 48px; }
+.pz-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.pz-hero h1 span {
+background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.pz-filter-wrap {
+display: flex;
+gap: 12px;
+margin-bottom: 40px;
+background: var(--bg-card);
+padding: 12px;
+border-radius: 20px;
+border: 1px solid var(--border);
+width: fit-content;
+}
+
+.pz-filter-wrap select {
+background: var(--bg-secondary);
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 10px 16px;
+color: var(--text-primary);
+font-size: 14px;
+font-weight: 600;
+outline: none;
+cursor: pointer;
+transition: all 0.2s;
+}
+
+.pz-filter-wrap select:hover { border-color: var(--accent-green); }
+
+.exercise-premium-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+gap: 24px;
+}
+
+.exercise-premium-card {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 24px;
+padding: 32px;
+transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+cursor: pointer;
+overflow: hidden;
+}
+
+.exercise-premium-card:hover {
+transform: translateY(-5px);
+border-color: var(--accent-green);
+box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+}
+
+.ex-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.ex-type-badge {
+padding: 4px 12px;
+border-radius: 8px;
+font-size: 11px;
+font-weight: 800;
+text-transform: uppercase;
+}
+
+.ex-difficulty {
+font-size: 11px;
+font-weight: 700;
+color: var(--text-muted);
+}
+
+.exercise-premium-card h3 { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
+.exercise-premium-card p { font-size: 15px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+
+.ex-meta {
+display: flex;
+align-items: center;
+gap: 12px;
+color: var(--text-muted);
+font-size: 13px;
+margin-bottom: 24px;
+}
+
+.ex-content-area {
+display: none;
+margin-top: 32px;
+padding-top: 32px;
+border-top: 1px solid var(--border);
+}
+
+.ex-content-area.active { display: block; animation: fadeInUp 0.4s ease; }
+
+.prose-mini { font-size: 15px; line-height: 1.7; color: var(--text-secondary); }
+.prose-mini code { background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: var(--accent-blue);
+}
+
+.hint-pill {
+padding: 8px 16px;
+border-radius: 10px;
+background: var(--bg-secondary);
+border: 1px solid var(--border);
+color: var(--accent-orange);
+font-size: 13px;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.2s;
+}
+.hint-pill:hover { background: rgba(255,140,0,0.1); border-color: var(--accent-orange); }
+
+.solution-pill {
+padding: 8px 16px;
+border-radius: 10px;
+background: rgba(0, 255, 136, 0.05);
+border: 1px solid rgba(0, 255, 136, 0.2);
+color: var(--accent-green);
+font-size: 13px;
+font-weight: 700;
+cursor: pointer;
+}
+
+@media (max-width: 600px) {
+.exercise-premium-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pz-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>Practice Zone</span>
+    </div>
+    <h1>The<br><span>Practice Zone</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Hone your skills with
+        curated challenges designed to bridge theory and application.</p>
+</div>
+
+<form method="get" action="/practice-zone/" class="pz-filter-wrap">
+    <select name="grade" onchange="this.form.submit()">
+        <option value="all">All Grades</option>
+        <option value="8" {% if current_grade == '8' %}selected{% endif %}>Class 8</option>
+        <option value="9" {% if current_grade == '9' %}selected{% endif %}>Class 9</option>
+        <option value="10" {% if current_grade == '10' %}selected{% endif %}>Class 10</option>
+        <option value="11" {% if current_grade == '11' %}selected{% endif %}>Class 11</option>
+        <option value="12" {% if current_grade == '12' %}selected{% endif %}>Class 12</option>
+    </select>
+
+    <select name="type" onchange="this.form.submit()">
+        <option value="">All Types</option>
+        <option value="code" {% if current_type == 'code' %}selected{% endif %}>Code Challenges</option>
+        <option value="experiment" {% if current_type == 'experiment' %}selected{% endif %}>Experiments</option>
+        <option value="activity" {% if current_type == 'activity' %}selected{% endif %}>Activities</option>
+        <option value="project" {% if current_type == 'project' %}selected{% endif %}>Projects</option>
+    </select>
+
+    <select name="difficulty" onchange="this.form.submit()">
+        <option value="">All Levels</option>
+        <option value="beginner" {% if current_difficulty == 'beginner' %}selected{% endif %}>Beginner</option>
+        <option value="intermediate" {% if current_difficulty == 'intermediate' %}selected{% endif %}>Intermediate
+        </option>
+        <option value="advanced" {% if current_difficulty == 'advanced' %}selected{% endif %}>Advanced</option>
+    </select>
+</form>
+
+<div class="exercise-premium-grid">
+    {% for ex in exercises %}
+    <div class="exercise-premium-card" id="ex-card-{{ ex.id }}">
+        <div onclick="toggleExercise({{ ex.id }})">
+            <div class="ex-top">
+                <span class="ex-type-badge" style="background:rgba(77,150,255,0.1); color:var(--accent-blue);">{{
+                    ex.get_exercise_type_display }}</span>
+                <span class="ex-difficulty">{{ ex.difficulty|upper }}</span>
+            </div>
+            <h3>{{ ex.title }}</h3>
+            <p>{{ ex.description|truncatewords:20 }}</p>
+            <div class="ex-meta">
+                <span>📚 {{ ex.module.title }}</span>
+                <span>•</span>
+                <span>Class {{ ex.grade_level }}</span>
+            </div>
+            <button class="btn btn-secondary" style="width:100%; border-radius:12px; font-weight:700;">Open Challenge
+                →</button>
+        </div>
+
+        <div class="ex-content-area" id="ex-content-{{ ex.id }}">
+            <div class="prose-mini markdown-content" data-raw="{{ ex.instructions_md }}">
+                {{ ex.instructions_md }}
+            </div>
+
+            {% if ex.starter_code %}
+            <div style="margin:24px 0;">
+                <div
+                    style="font-size:11px; font-weight:800; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase;">
+                    Starter Template</div>
+                <pre
+                    style="background:#0d1117; padding:20px; border-radius:16px; border:1px solid var(--border); overflow-x:auto;"><code style="color:#e6edf3; font-family:'JetBrains Mono',monospace; font-size:13px;">{{ ex.starter_code }}</code></pre>
+            </div>
+            {% endif %}
+
+            <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:24px;">
+                {% for hint in ex.hints %}
+                <button class="hint-pill" onclick="showHint({{ ex.id }}, {{ forloop.counter0 }})">💡 Hint {{
+                    forloop.counter }}</button>
+                {% endfor %}
+                {% if ex.solution_code %}
+                <button class="solution-pill" onclick="showSolution({{ ex.id }})">✅ Reveal Solution</button>
+                {% endif %}
+            </div>
+
+            {% for hint in ex.hints %}
+            <div id="hint-{{ ex.id }}-{{ forloop.counter0 }}"
+                style="display:none; background:rgba(255, 140, 0, 0.05); border-left:3px solid var(--accent-orange); padding:16px; border-radius:0 12px 12px 0; margin-top:12px; font-size:14px; color:var(--text-secondary);">
+                {{ hint }}
+            </div>
+            {% endfor %}
+
+            {% if ex.solution_code %}
+            <div id="solution-{{ ex.id }}" style="display:none; margin-top:24px;">
+                <div
+                    style="font-size:11px; font-weight:800; color:var(--accent-green); margin-bottom:8px; text-transform:uppercase;">
+                    Reference Solution</div>
+                <pre
+                    style="background:rgba(0, 255, 136, 0.03); padding:20px; border-radius:16px; border:1px solid rgba(0, 255, 136, 0.2); overflow-x:auto;"><code style="color:var(--text-primary); font-family:'JetBrains Mono',monospace; font-size:13px;">{{ ex.solution_code }}</code></pre>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div style="grid-column:1/-1; text-align:center; padding:100px; color:var(--text-muted);">
+        <div style="font-size:48px; margin-bottom:16px;">✏️</div>
+        <div style="font-size:20px; font-weight:800; color:var(--text-primary);">No challenges found</div>
+        <p>Try changing your filters or checking back later.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleExercise(id) {
+        const content = document.getElementById(`ex-content-${id}`);
+        content.classList.toggle('active');
+
+        if (content.classList.contains('active')) {
+            content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Render MD
+            content.querySelectorAll('.markdown-content').forEach(el => {
+                const raw = el.dataset.raw;
+                if (raw && typeof marked !== 'undefined') el.innerHTML = marked.parse(raw);
+            });
+        }
+    }
+
+    function showHint(exId, hintIdx) {
+        const hint = document.getElementById(`hint-${exId}-${hintIdx}`);
+        hint.style.display = 'block';
+        hint.classList.add('fade-in');
+    }
+
+    function showSolution(exId) {
+        const sol = document.getElementById(`solution-${exId}`);
+        sol.style.display = 'block';
+        sol.classList.add('fade-in');
+    }
+</script>
+{% endblock %}

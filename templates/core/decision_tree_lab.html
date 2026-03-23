@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% block title %}Decision Tree Lab — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.tree-hero { margin-bottom: 48px; }
+.tree-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.tree-hero h1 span {
+background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.tree-workspace {
+display: grid;
+grid-template-columns: 320px 1fr;
+gap: 32px;
+}
+
+.tree-config {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 28px;
+padding: 32px;
+height: fit-content;
+position: sticky;
+top: 40px;
+}
+
+.tree-viewport {
+background: #09090b;
+border: 1px solid var(--border);
+border-radius: 32px;
+padding: 40px;
+position: relative;
+overflow: hidden;
+box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
+min-height: 600px;
+}
+
+.node circle {
+fill: #09090b;
+stroke-width: 3;
+transition: all 0.3s;
+}
+
+.node.leaf circle { stroke: var(--accent-green); fill: rgba(0, 255, 136, 0.1); }
+.node.split circle { stroke: var(--accent-blue); fill: rgba(77, 150, 255, 0.1); }
+
+.link {
+fill: none;
+stroke: var(--border);
+stroke-width: 2;
+stroke-opacity: 0.4;
+transition: 0.3s;
+}
+
+.node:hover circle {
+transform: scale(1.2);
+filter: drop-shadow(0 0 10px currentColor);
+}
+
+.premium-tooltip {
+position: absolute;
+background: rgba(20, 20, 25, 0.95);
+backdrop-filter: blur(10px);
+border: 1px solid var(--border-glow);
+border-radius: 12px;
+padding: 16px;
+pointer-events: none;
+opacity: 0;
+transition: opacity 0.2s;
+font-size: 13px;
+z-index: 1000;
+box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.stat-strip-tree {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 16px;
+margin-top: 32px;
+padding-top: 32px;
+border-top: 1px solid var(--border);
+}
+
+@media (max-width: 1000px) {
+.tree-workspace { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tree-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>Decision Tree Lab</span>
+    </div>
+    <h1>Recursive<br><span>Logic Orchard</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Visualize the branching
+        logic of classification. Architect trees that find signals in noisy data.</p>
+</div>
+
+<div class="tree-workspace">
+    <!-- Configuration -->
+    <aside class="tree-config">
+        <label class="param-label">Architectural Constraints</label>
+
+        <div class="parameter-group" style="margin-top:20px;">
+            <div class="param-header"><span class="param-label">Max Depth</span><span class="param-value"
+                    id="val-depth">3</span></div>
+            <input type="range" id="max-depth" min="1" max="6" value="3" class="premium-slider"
+                oninput="document.getElementById('val-depth').textContent=this.value; buildTree()">
+        </div>
+
+        <div class="parameter-group">
+            <div class="param-header"><span class="param-label">Min Samples</span><span class="param-value"
+                    id="val-samples">5</span></div>
+            <input type="range" id="min-samples" min="2" max="30" value="5" class="premium-slider"
+                oninput="document.getElementById('val-samples').textContent=this.value; buildTree()">
+        </div>
+
+        <label class="param-label" style="display:block; margin-top:20px;">Inference Strategy</label>
+        <select id="criterion" class="nn-input-field" style="margin-top:10px;" onchange="buildTree()">
+            <option value="gini">Gini Impurity (Fast)</option>
+            <option value="entropy">Information Gain (Deep)</option>
+        </select>
+
+        <button onclick="buildTree()" class="btn btn-blue"
+            style="width:100%; height:50px; border-radius:14px; font-weight:800; color:#fff; border:none; background:var(--accent-blue);">⚡
+            Execute Training</button>
+
+        <div class="stat-strip-tree" id="results-view" style="display:none;">
+            <div class="stat-box">
+                <div class="stat-v" id="res-acc" style="color:var(--accent-green);">0%</div>
+                <div class="stat-l">Classification Accuracy</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-v" id="res-nodes">0</div>
+                <div class="stat-l">Total Nodes</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Map Viewport -->
+    <main class="tree-viewport">
+        <div id="tooltip" class="premium-tooltip"></div>
+        <svg id="tree-svg" style="width:100%; height:600px;"></svg>
+        <div id="tree-empty"
+            style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted);">
+            <div style="font-size:48px; margin-bottom:16px;">🌲</div>
+            <div style="font-size:14px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em;">Awaiting
+                Growth Initiation</div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+    let currentData = null;
+
+    async function buildTree() {
+        document.getElementById('tree-empty').style.display = 'none';
+
+        const params = {
+            max_depth: parseInt(document.getElementById('max-depth').value),
+            min_samples: parseInt(document.getElementById('min-samples').value),
+            criterion: document.getElementById('criterion').value,
+            seed: 42
+        };
+
+        const res = await fetch('/api/simulations/decision-tree/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+        });
+        currentData = await res.json();
+
+        render(currentData.tree);
+
+        document.getElementById('results-view').style.display = 'grid';
+        document.getElementById('res-acc').textContent = currentData.accuracy + '%';
+
+        let nodeCount = 0;
+        const count = (n) => { nodeCount++; if (n.left) count(n.left); if (n.right) count(n.right); };
+        count(currentData.tree);
+        document.getElementById('res-nodes').textContent = nodeCount;
+    }
+
+    function render(data) {
+        const svg = d3.select("#tree-svg");
+        svg.selectAll("*").remove();
+
+        const width = document.getElementById('tree-svg').clientWidth;
+        const height = 600;
+        const margin = { top: 60, right: 60, bottom: 60, left: 60 };
+
+        const treemap = d3.tree().size([width - margin.left - margin.right, height - margin.top - margin.bottom]);
+        let nodes = d3.hierarchy(data, d => d.is_leaf ? null : [d.left, d.right]);
+        nodes = treemap(nodes);
+
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Connectors
+        g.selectAll(".link")
+            .data(nodes.descendants().slice(1))
+            .enter().append("path")
+            .attr("class", "link")
+            .attr("d", d => `M${d.x},${d.y}C${d.x},${(d.y + d.parent.y) / 2} ${d.parent.x},${(d.y + d.parent.y) / 2} ${d.parent.x},${d.parent.y}`);
+
+        // Interactive entities
+        const node = g.selectAll(".node")
+            .data(nodes.descendants())
+            .enter().append("g")
+            .attr("class", d => "node " + (d.data.is_leaf ? "leaf" : "split"))
+            .attr("transform", d => `translate(${d.x},${d.y})`)
+            .on("mouseover", (e, d) => showTip(e, d.data))
+            .on("mouseout", hideTip);
+
+        node.append("circle").attr("r", 22);
+
+        node.append("text")
+            .attr("dy", ".35em")
+            .attr("text-anchor", "middle")
+            .style("fill", "#fff")
+            .style("font-size", "9px")
+            .style("font-weight", "800")
+            .text(d => d.data.is_leaf ? "LEAF" : "BRANCH");
+
+        node.append("text")
+            .attr("y", 40)
+            .attr("text-anchor", "middle")
+            .style("fill", "var(--text-secondary)")
+            .style("font-size", "11px")
+            .style("font-weight", "700")
+            .text(d => d.data.is_leaf ? `Class ${d.data.class_label}` : d.data.feature);
+    }
+
+    function showTip(e, d) {
+        const tip = document.getElementById('tooltip');
+        let html = `
+            <div style="color:var(--text-muted); font-size:10px; font-weight:800; text-transform:uppercase; margin-bottom:8px;">Node Analytics</div>
+            <div style="font-size:14px; font-weight:800; margin-bottom:8px;">${d.is_leaf ? 'Classification Result' : 'Strategic Split'}</div>
+            <div style="display:grid; gap:4px; font-family:'JetBrains Mono'; font-size:12px;">
+                <div style="display:flex; justify-content:space-between; gap:20px;"><span>Gini Index:</span> <span style="color:var(--accent-blue);">${d.gini.toFixed(3)}</span></div>
+                <div style="display:flex; justify-content:space-between; gap:20px;"><span>Samples:</span> <span style="color:var(--accent-green);">${d.samples}</span></div>
+                ${d.is_leaf ? '' : `<div style="display:flex; justify-content:space-between; gap:20px;"><span>Threshold:</span> <span style="color:var(--accent-orange);">${d.threshold.toFixed(2)}</span></div>`}
+            </div>
+        `;
+        tip.innerHTML = html;
+        tip.style.opacity = 1;
+        tip.style.left = (e.clientX + 20) + 'px';
+        tip.style.top = (e.clientY - 20) + 'px';
+    }
+
+    function hideTip() { document.getElementById('tooltip').style.opacity = 0; }
+
+    buildTree();
+</script>
+{% endblock %}

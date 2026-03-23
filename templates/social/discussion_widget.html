@@ -1,0 +1,161 @@
+<div class="discussion-widget" id="discussion-widget" style="margin-top:48px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h2 style="font-size:20px;font-weight:700;">💬 Discussion <span id="disc-count" style="font-size:14px;color:var(--text-muted);font-weight:400;"></span></h2>
+        <button onclick="toggleAskForm()" class="btn btn-green" style="padding:8px 18px;font-size:13px;">+ Ask a Question</button>
+    </div>
+
+    <!-- Ask form -->
+    <div id="ask-form" style="display:none;background:var(--bg-card);border:1px solid var(--accent-green);border-radius:12px;padding:20px;margin-bottom:20px;">
+        <input type="text" id="disc-title" placeholder="Question title..." style="width:100%;background:#09090b;border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box;">
+        <textarea id="disc-body" rows="3" placeholder="Describe your question in detail..." style="width:100%;background:#09090b;border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;outline:none;resize:none;box-sizing:border-box;"></textarea>
+        <div style="display:flex;gap:10px;margin-top:10px;">
+            <button onclick="submitDiscussion()" class="btn btn-green" style="padding:8px 20px;font-size:13px;">Post Question</button>
+            <button onclick="toggleAskForm()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 16px;color:var(--text-muted);cursor:pointer;font-size:13px;">Cancel</button>
+        </div>
+    </div>
+
+    <div id="discussions-list"></div>
+</div>
+
+<style>
+.disc-item { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; margin-bottom:12px; overflow:hidden; }
+.disc-header { padding:16px 20px; cursor:pointer; display:flex; justify-content:space-between; align-items:flex-start; }
+.disc-header:hover { background:rgba(255,255,255,0.02); }
+.disc-title-text { font-size:14px; font-weight:600; margin-bottom:4px; }
+.disc-resolved { color:#00ff88; font-size:11px; margin-left:8px; }
+.disc-meta { font-size:11px; color:var(--text-muted); }
+.disc-actions { display:flex; gap:12px; align-items:center; flex-shrink:0; }
+.upvote-btn { background:none; border:1px solid var(--border); border-radius:20px; padding:4px 10px; color:var(--text-muted); cursor:pointer; font-size:12px; }
+.upvote-btn:hover { border-color:var(--accent-green); color:var(--accent-green); }
+.disc-replies { padding:0 20px 16px; border-top:1px solid rgba(255,255,255,0.04); }
+.reply-item { background:rgba(255,255,255,0.03); border-radius:8px; padding:12px 14px; margin-top:10px; font-size:13px; }
+.best-answer { border:1px solid rgba(0,255,136,0.3); background:rgba(0,255,136,0.04); }
+.reply-meta { font-size:11px; color:var(--text-muted); margin-top:6px; display:flex; justify-content:space-between; }
+.reply-form { margin-top:12px; }
+.reply-form input { width:100%; background:#09090b; border:1px solid var(--border); border-radius:8px; padding:8px 12px; color:#fff; font-size:13px; outline:none; box-sizing:border-box; }
+</style>
+
+<script>
+(function() {
+    const moduleSlug = "{{ module_slug }}";
+    let discussions = [];
+
+    function timeAgo(iso) {
+        const diff = (Date.now() - new Date(iso)) / 1000;
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+        return Math.floor(diff/86400) + 'd ago';
+    }
+
+    async function loadDiscussions() {
+        const res = await fetch(`/api/social/discussions/${moduleSlug}/`);
+        const data = await res.json();
+        discussions = data.discussions;
+        document.getElementById('disc-count').textContent = `(${data.count})`;
+        renderDiscussions();
+    }
+
+    function renderDiscussions() {
+        const list = document.getElementById('discussions-list');
+        if (!discussions.length) {
+            list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px;">No discussions yet — be the first to ask!</div>';
+            return;
+        }
+        list.innerHTML = discussions.map(d => `
+        <div class="disc-item" id="disc-${d.id}">
+            <div class="disc-header" onclick="toggleReplies(${d.id})">
+                <div>
+                    <div class="disc-title-text">${d.title}${d.is_resolved ? '<span class="disc-resolved">✓ Resolved</span>' : ''}</div>
+                    <div class="disc-meta">by ${d.username} · ${timeAgo(d.created_at)} · ${d.reply_count} replies</div>
+                </div>
+                <div class="disc-actions">
+                    <button class="upvote-btn" onclick="event.stopPropagation();upvote(${d.id},'discussion')">👍 ${d.upvotes}</button>
+                    <span style="color:var(--text-muted);font-size:12px;">▼</span>
+                </div>
+            </div>
+            <div id="replies-${d.id}" style="display:none;">
+                <div class="disc-replies">
+                    <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.6;">${d.body}</div>
+                    <div id="replies-content-${d.id}"><div style="color:var(--text-muted);font-size:12px;">Loading replies...</div></div>
+                    <div class="reply-form">
+                        <input type="text" id="reply-input-${d.id}" placeholder="Write a reply..." onkeydown="if(event.key==='Enter')submitReply(${d.id})">
+                    </div>
+                </div>
+            </div>
+        </div>`).join('');
+    }
+
+    window.toggleReplies = async function(id) {
+        const el = document.getElementById(`replies-${id}`);
+        const isOpen = el.style.display !== 'none';
+        el.style.display = isOpen ? 'none' : 'block';
+        if (!isOpen) {
+            const res = await fetch(`/api/social/discussions/${id}/detail/`);
+            const data = await res.json();
+            const container = document.getElementById(`replies-content-${id}`);
+            if (!data.replies.length) {
+                container.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">No replies yet</div>';
+                return;
+            }
+            container.innerHTML = data.replies.map(r => `
+            <div class="reply-item ${r.is_best_answer ? 'best-answer' : ''}">
+                ${r.is_best_answer ? '<div style="font-size:11px;color:#00ff88;margin-bottom:6px;">✅ Best Answer</div>' : ''}
+                ${r.body}
+                <div class="reply-meta">
+                    <span>${r.username} · ${timeAgo(r.created_at)}</span>
+                    <button class="upvote-btn" onclick="upvote(${r.id},'reply')">👍 ${r.upvotes}</button>
+                </div>
+            </div>`).join('');
+        }
+    };
+
+    window.submitDiscussion = async function() {
+        const title = document.getElementById('disc-title').value.trim();
+        const body = document.getElementById('disc-body').value.trim();
+        if (!title || !body) return;
+        const token = localStorage.getItem('access_token') || '';
+        const res = await fetch(`/api/social/discussions/${moduleSlug}/`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+            body: JSON.stringify({title, body})
+        });
+        if (res.ok) {
+            document.getElementById('disc-title').value = '';
+            document.getElementById('disc-body').value = '';
+            document.getElementById('ask-form').style.display = 'none';
+            await loadDiscussions();
+        }
+    };
+
+    window.submitReply = async function(discId) {
+        const input = document.getElementById(`reply-input-${discId}`);
+        const body = input.value.trim();
+        if (!body) return;
+        const token = localStorage.getItem('access_token') || '';
+        const res = await fetch(`/api/social/discussions/${discId}/detail/`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+            body: JSON.stringify({body})
+        });
+        if (res.ok) { input.value = ''; window.toggleReplies(discId); setTimeout(() => window.toggleReplies(discId), 50); }
+    };
+
+    window.upvote = async function(id, type) {
+        const token = localStorage.getItem('access_token') || '';
+        await fetch(`/api/social/discussions/${id}/upvote/`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+            body: JSON.stringify({type})
+        });
+        await loadDiscussions();
+    };
+
+    window.toggleAskForm = function() {
+        const f = document.getElementById('ask-form');
+        f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    };
+
+    loadDiscussions();
+})();
+</script>

@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% block title %}Agent Flow Visualizer — AI Lab{% endblock %}
+{% block nav_agentvis %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.agent-hero { margin-bottom: 48px; }
+.agent-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.agent-hero h1 span {
+background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.agent-workspace {
+display: grid;
+grid-template-columns: 360px 1fr;
+gap: 32px;
+align-items: start;
+}
+
+.agent-config-panel {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 24px;
+padding: 32px;
+}
+
+.config-section-title {
+font-size: 11px;
+font-weight: 800;
+text-transform: uppercase;
+color: var(--text-muted);
+letter-spacing: 0.1em;
+margin-bottom: 20px;
+}
+
+.agent-input-group { margin-bottom: 24px; }
+.agent-input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-secondary);
+margin-bottom: 8px; }
+
+.agent-textarea {
+width: 100%;
+background: var(--bg-secondary);
+border: 1px solid var(--border);
+border-radius: 14px;
+padding: 16px;
+color: #fff;
+font-size: 14px;
+resize: none;
+outline: none;
+transition: 0.2s;
+}
+.agent-textarea:focus { border-color: var(--accent-orange); }
+
+.tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tool-chip {
+padding: 10px;
+background: rgba(255, 255, 255, 0.02);
+border: 1px solid var(--border);
+border-radius: 12px;
+font-size: 12px;
+display: flex;
+align-items: center;
+gap: 8px;
+cursor: pointer;
+}
+.tool-chip input { cursor: pointer; }
+
+.agent-log {
+background: #09090b;
+border: 1px solid var(--border);
+border-radius: 24px;
+padding: 40px;
+min-height: 600px;
+}
+
+.log-step {
+border-left: 2px solid var(--border);
+margin-left: 10px;
+padding-left: 30px;
+padding-bottom: 40px;
+position: relative;
+opacity: 0.3;
+transition: all 0.4s;
+}
+
+.log-step::before {
+content: "";
+position: absolute;
+left: -7px;
+top: 0;
+width: 12px;
+height: 12px;
+background: var(--bg-primary);
+border: 2px solid var(--text-muted);
+border-radius: 50%;
+}
+
+.log-step.active { opacity: 1; }
+.log-step.active::before { border-color: var(--accent-orange); background: var(--accent-orange); box-shadow: 0 0 15px
+var(--accent-orange); }
+.log-step.done { opacity: 0.8; border-left-color: var(--accent-orange); }
+.log-step.done::before { border-color: var(--accent-orange); }
+
+.step-meta-box {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-bottom: 12px;
+}
+
+.agent-badge {
+padding: 3px 10px;
+background: rgba(255, 140, 0, 0.1);
+color: var(--accent-orange);
+border: 1px solid rgba(255, 140, 0, 0.3);
+border-radius: 6px;
+font-size: 10px;
+font-weight: 800;
+text-transform: uppercase;
+}
+
+.step-label { font-size: 15px; font-weight: 800; color: var(--text-primary); }
+
+.thought-bubble {
+background: rgba(255, 255, 255, 0.02);
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 20px;
+font-size: 14px;
+line-height: 1.6;
+color: var(--text-secondary);
+font-style: italic;
+margin-bottom: 16px;
+}
+
+.action-line {
+font-family: 'JetBrains Mono', monospace;
+font-size: 12px;
+color: var(--accent-blue);
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.metrics-panel {
+display: flex;
+gap: 40px;
+margin-top: 40px;
+padding-top: 32px;
+border-top: 1px solid var(--border);
+}
+
+.met-stat { display: flex; flex-direction: column; }
+.met-stat .val { font-size: 24px; font-weight: 800; }
+.met-stat .lbl { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+
+@media (max-width: 1000px) {
+.agent-workspace { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="agent-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>Agent Visualizer</span>
+    </div>
+    <h1>Agentic<br><span>Intelligence Lab</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Watch complex reasoning
+        emerge as autonomous agents plan and solve multi-step tasks.</p>
+</div>
+
+<div class="agent-workspace">
+    <!-- Configuration -->
+    <aside class="agent-config-panel">
+        <div class="config-section-title">Mission Briefing</div>
+
+        <div class="agent-input-group">
+            <label>Primary Objective</label>
+            <textarea id="agent-task" class="agent-textarea"
+                rows="4">Decompose and solve: Calculate the potential impact of a 0.5% interest rate hike on a $1M loan over 30 years and summarize the financial implications.</textarea>
+        </div>
+
+        <div class="agent-input-group">
+            <label>Architecture</label>
+            <select id="agent-type"
+                style="width:100%; background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:12px; color:#fff; font-size:13px; outline:none;">
+                <option value="ReAct">ReAct Reasoning</option>
+                <option value="Plan-Execute">Static Planning</option>
+                <option value="CrewAI">Swarm Multi-Agent</option>
+            </select>
+        </div>
+
+        <div class="agent-input-group">
+            <label>Available Capabilities</label>
+            <div class="tool-grid">
+                <div class="tool-chip"><input type="checkbox" checked value="search"> 🌐 Browser</div>
+                <div class="tool-chip"><input type="checkbox" checked value="calc"> 🧮 Compute</div>
+                <div class="tool-chip"><input type="checkbox" checked value="code"> 💻 Sandbox</div>
+                <div class="tool-chip"><input type="checkbox" value="memory"> 🧠 Buffer</div>
+            </div>
+        </div>
+
+        <button id="run-btn" onclick="runAgentSim()" class="btn btn-primary"
+            style="width:100%; height:54px; border-radius:14px; font-weight:800; background:var(--accent-orange); color:#000; border:none;">Initiate
+            Execution →</button>
+    </aside>
+
+    <!-- Execution Logs -->
+    <main class="agent-log">
+        <div id="log-container">
+            <div style="text-align:center; padding-top:100px; color:var(--text-muted);">
+                <div style="font-size:40px; margin-bottom:20px;">🤖</div>
+                <div style="font-size:14px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em;">Waiting
+                    for Mission Initiation</div>
+            </div>
+        </div>
+
+        <!-- Metrics visible after run -->
+        <div class="metrics-panel" id="execution-metrics" style="display:none;">
+            <div class="met-stat"><span class="val" id="m-latency">0ms</span><span class="lbl">Total Runtime</span>
+            </div>
+            <div class="met-stat"><span class="val" id="m-tokens" style="color:var(--accent-blue);">0</span><span
+                    class="lbl">Compute Units</span></div>
+            <div class="met-stat"><span class="val" id="m-cost" style="color:var(--accent-green);">$0.00</span><span
+                    class="lbl">Projected Cost</span></div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function runAgentSim() {
+        const btn = document.getElementById('run-btn');
+        btn.disabled = true; btn.textContent = 'Agent Executing...';
+
+        const container = document.getElementById('log-container');
+        container.innerHTML = '';
+        document.getElementById('execution-metrics').style.display = 'none';
+
+        const params = {
+            task: document.getElementById('agent-task').value,
+            agent_type: document.getElementById('agent-type').value,
+            tools: ['search', 'calc', 'code'],
+            memory: true
+        };
+
+        try {
+            const res = await fetch('/api/simulations/agent-flow/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+            const data = await res.json();
+
+            for (const step of data.steps) {
+                const el = document.createElement('div');
+                el.className = 'log-step';
+                el.innerHTML = `
+                    <div class="step-meta-box">
+                        <span class="agent-badge">${step.agent}</span>
+                        <span class="step-label">${step.step}</span>
+                    </div>
+                    <div class="thought-bubble">${step.thought}</div>
+                    ${step.tool ? `
+                    <div class="action-line">
+                        <span>🔧 <strong>Action:</strong> Calling ${step.tool}</span>
+                        <span style="opacity:0.4">|</span>
+                        <span style="font-size:10px; opacity:0.6">${step.latency_ms}ms</span>
+                    </div>` : ''}
+                `;
+                container.appendChild(el);
+
+                // Animate entry
+                setTimeout(() => el.classList.add('active'), 50);
+                await new Promise(r => setTimeout(r, 800));
+                el.classList.remove('active');
+                el.classList.add('done');
+            }
+
+            // Show results
+            document.getElementById('m-latency').textContent = data.total_latency_ms + 'ms';
+            document.getElementById('m-tokens').textContent = data.total_tokens;
+            document.getElementById('m-cost').textContent = '$' + data.cost_usd;
+            document.getElementById('execution-metrics').style.display = 'flex';
+
+        } catch (e) {
+            console.error(e);
+        } finally {
+            btn.disabled = false; btn.textContent = 'Initiate Execution →';
+        }
+    }
+</script>
+{% endblock %}

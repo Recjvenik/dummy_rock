@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+{% block title %}RAG Pipeline Visualizer — AI Lab{% endblock %}
+{% block nav_rag %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.rag-hero { margin-bottom: 48px; }
+.rag-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.rag-hero h1 span {
+background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.rag-layout {
+display: grid;
+grid-template-columns: 320px 1fr 320px;
+gap: 32px;
+}
+
+.rag-controls {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 24px;
+padding: 32px;
+height: fit-content;
+position: sticky;
+top: 40px;
+}
+
+.rag-timeline {
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+
+.pipeline-step {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 20px;
+padding: 20px 24px;
+display: flex;
+align-items: center;
+gap: 16px;
+opacity: 0.4;
+transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.pipeline-step.active {
+opacity: 1;
+border-color: var(--accent-green);
+transform: translateX(10px);
+box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+}
+
+.pipeline-step.done {
+opacity: 0.8;
+background: rgba(255, 255, 255, 0.02);
+}
+
+.step-icon {
+width: 44px;
+height: 44px;
+background: var(--bg-secondary);
+border-radius: 12px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 20px;
+}
+
+.active .step-icon { background: var(--accent-green); color: #000; }
+.done .step-icon { color: var(--accent-green); }
+
+.step-info { flex: 1; }
+.step-title { font-size: 14px; font-weight: 800; color: var(--text-primary); }
+.step-status { font-size: 12px; color: var(--text-muted); }
+
+.chunk-gallery {
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+
+.premium-chunk {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 20px;
+padding: 20px;
+transition: all 0.3s;
+}
+
+.premium-chunk:hover { border-color: var(--accent-blue); }
+
+.chunk-meta {
+display: flex;
+justify-content: space-between;
+font-size: 11px;
+font-weight: 800;
+text-transform: uppercase;
+color: var(--text-muted);
+margin-bottom: 12px;
+}
+
+.chunk-text { line-height: 1.6; font-size: 14px; color: var(--text-secondary); }
+
+.score-track {
+height: 4px;
+background: rgba(255, 255, 255, 0.05);
+border-radius: 10px;
+margin-top: 16px;
+overflow: hidden;
+}
+
+.score-bar {
+height: 100%;
+background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+border-radius: 10px;
+transition: width 1s ease-out;
+}
+
+.metrics-floating {
+display: flex;
+gap: 24px;
+margin-bottom: 32px;
+padding: 20px 32px;
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 20px;
+width: fit-content;
+}
+
+.met-val { font-size: 24px; font-weight: 800; display: block; }
+.met-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); }
+
+@media (max-width: 1200px) {
+.rag-layout { grid-template-columns: 1fr; }
+.rag-controls { position: static; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rag-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>RAG Pipeline</span>
+    </div>
+    <h1>Retrieval<br><span>Architecture Lab</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Experience the pipeline
+        that powers modern AI knowledge retrieval systems.</p>
+</div>
+
+<div class="rag-layout">
+    <!-- Configuration -->
+    <aside class="rag-controls">
+        <h3
+            style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted); margin-bottom:24px;">
+            Configuration</h3>
+
+        <div style="margin-bottom:20px;">
+            <label
+                style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:8px;">Pipeline
+                Query</label>
+            <textarea id="query-input"
+                style="width:100%; height:100px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:12px; color:#fff; font-size:13px; outline:none; resize:none;">What is Retrieval Augmented Generation and how does it work?</textarea>
+        </div>
+
+        <div style="margin-bottom:20px;">
+            <label
+                style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:8px;">Chunk
+                Density</label>
+            <select id="chunk-size"
+                style="width:100%; background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:12px; color:#fff; font-size:13px; outline:none;">
+                <option value="256">High Density (256)</option>
+                <option value="512" selected>Standard (512)</option>
+                <option value="1024">Deep Context (1024)</option>
+            </select>
+        </div>
+
+        <button onclick="runRAGSim()" id="run-btn" class="btn btn-green"
+            style="width:100%; height:50px; border-radius:14px; font-weight:800; color:#000;">Launch Pipeline →</button>
+    </aside>
+
+    <!-- Execution Timeline -->
+    <main>
+        <div class="metrics-floating" id="metrics-view" style="opacity:0;">
+            <div class="met-item"><span class="met-val" id="m-latency">0ms</span><span class="met-lbl">Latency</span>
+            </div>
+            <div class="met-item"><span class="met-val" id="m-tokens" style="color:var(--accent-blue);">0</span><span
+                    class="met-lbl">Tokens</span></div>
+            <div class="met-item"><span class="met-val" id="m-cost" style="color:var(--accent-green);">$0.00</span><span
+                    class="met-lbl">Budget Used</span></div>
+        </div>
+
+        <div class="rag-timeline">
+            <div class="pipeline-step" id="step-0">
+                <div class="step-icon">🔍</div>
+                <div class="step-info">
+                    <div class="step-title">Query Processing</div>
+                    <div class="step-status">Parsing intent and entity extraction...</div>
+                </div>
+            </div>
+            <div class="pipeline-step" id="step-1">
+                <div class="step-icon">✂️</div>
+                <div class="step-info">
+                    <div class="step-title">Knowledge Partitioning</div>
+                    <div class="step-status">Optimizing chunk indices for retrieval...</div>
+                </div>
+            </div>
+            <div class="pipeline-step" id="step-2">
+                <div class="step-icon">🔢</div>
+                <div class="step-info">
+                    <div class="step-title">Vector Embedding</div>
+                    <div class="step-status">Generating semantic tensors...</div>
+                </div>
+            </div>
+            <div class="pipeline-step" id="step-3">
+                <div class="step-icon">🗄️</div>
+                <div class="step-info">
+                    <div class="step-title">Similarity Search</div>
+                    <div class="step-status">Traversing vector space for candidate chunks...</div>
+                </div>
+            </div>
+            <div class="pipeline-step" id="step-4">
+                <div class="step-icon">🏆</div>
+                <div class="step-info">
+                    <div class="step-title">Neural Reranking</div>
+                    <div class="step-status">Filtering chunks by contextual relevance...</div>
+                </div>
+            </div>
+            <div class="pipeline-step" id="step-5">
+                <div class="step-icon">🧠</div>
+                <div class="step-info">
+                    <div class="step-title">Synthesis</div>
+                    <div class="step-status">Claude 3.5 synthesizing final response...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="final-response" style="margin-top:40px; display:none;">
+            <div class="section-card" style="padding:40px;">
+                <h3
+                    style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--accent-green); margin-bottom:20px;">
+                    Final Synthesized Output</h3>
+                <div id="response-content" class="prose" style="font-size:16px;"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Knowledge Base Side -->
+    <aside>
+        <h3
+            style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted); margin-bottom:24px;">
+            Retrieved Knowledge</h3>
+        <div class="chunk-gallery" id="chunk-list">
+            <div style="text-align:center; padding:60px; color:var(--text-muted); font-size:12px;">Waiting for pipeline
+                execution...</div>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function runRAGSim() {
+        const btn = document.getElementById('run-btn');
+        btn.disabled = true; btn.textContent = 'Executing...';
+
+        document.querySelectorAll('.pipeline-step').forEach(s => s.classList.remove('active', 'done'));
+        document.getElementById('metrics-view').style.opacity = '0';
+        document.getElementById('final-response').style.display = 'none';
+        document.getElementById('chunk-list').innerHTML = '<div style="text-align:center; padding:20px; color:var(--accent-blue);">Scanning vector space...</div>';
+
+        const params = {
+            query: document.getElementById('query-input').value,
+            chunk_size: parseInt(document.getElementById('chunk-size').value),
+            top_k: 5,
+            reranking: true
+        };
+
+        try {
+            const res = await fetch('/api/simulations/rag-pipeline/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+            const data = await res.json();
+
+            // Animate
+            for (let i = 0; i < data.stages.length; i++) {
+                const step = document.getElementById('step-' + i);
+                if (step) {
+                    step.classList.add('active');
+                    await new Promise(r => setTimeout(r, 600));
+                    step.classList.remove('active');
+                    step.classList.add('done');
+                }
+            }
+
+            // Results
+            document.getElementById('m-latency').textContent = data.total_latency_ms + 'ms';
+            document.getElementById('m-tokens').textContent = data.total_tokens;
+            document.getElementById('m-cost').textContent = '$' + data.cost_usd;
+            document.getElementById('metrics-view').style.opacity = '1';
+
+            document.getElementById('chunk-list').innerHTML = data.retrieved_chunks.map(c => `
+                <div class="premium-chunk">
+                    <div class="chunk-meta">
+                        <span>Chunk #${Math.floor(Math.random() * 9000) + 1000}</span>
+                        <span style="color:var(--accent-green)">${(c.score * 100).toFixed(1)}% Match</span>
+                    </div>
+                    <div class="chunk-text">${c.text}</div>
+                    <div class="score-track"><div class="score-bar" style="width:${c.score * 100}%"></div></div>
+                </div>
+            `).join('');
+
+            const lastStage = data.stages[data.stages.length - 1];
+            if (lastStage && lastStage.content) {
+                document.getElementById('final-response').style.display = 'block';
+                document.getElementById('response-content').innerHTML = lastStage.content;
+            }
+
+        } catch (e) {
+            console.error(e);
+        } finally {
+            btn.disabled = false; btn.textContent = 'Launch Pipeline →';
+        }
+    }
+</script>
+{% endblock %}

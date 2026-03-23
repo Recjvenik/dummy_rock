@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ student.get_full_name|default:student.email }} — Student Report{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/school.css' %}">
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:8px;font-size:13px;color:var(--text-muted);">
+    <a href="/school/" style="color:var(--accent-blue);text-decoration:none;">Dashboard</a> /
+    <a href="/school/classroom/{{ classroom.pk }}/" style="color:var(--accent-blue);text-decoration:none;">{{ classroom.name }}</a> /
+    {{ student.get_full_name|default:student.email }}
+</div>
+
+<div class="school-header">
+    <div>
+        <h1>{{ student.get_full_name|default:student.username }}</h1>
+        <div class="sub">{{ student.email }} · Class {{ classroom.grade }}</div>
+    </div>
+</div>
+
+<!-- Profile stats -->
+<div class="school-stats" style="margin-bottom:40px;">
+    <div class="school-stat-card">
+        <div class="val">{% if profile %}{{ profile.total_xp }}{% else %}—{% endif %}</div>
+        <div class="lbl">Total XP</div>
+    </div>
+    <div class="school-stat-card">
+        <div class="val">{% if profile %}{{ profile.level }}{% else %}—{% endif %}</div>
+        <div class="lbl">Level</div>
+    </div>
+    <div class="school-stat-card">
+        <div class="val">{% if profile %}{{ profile.streak_days }}{% else %}—{% endif %}</div>
+        <div class="lbl">Day Streak 🔥</div>
+    </div>
+    <div class="school-stat-card">
+        <div class="val">{{ progress_list|length }}</div>
+        <div class="lbl">Modules Tracked</div>
+    </div>
+</div>
+
+<!-- Module Progress -->
+<h2 style="font-size:18px;font-weight:700;margin-bottom:16px;">Module Progress</h2>
+{% if progress_list %}
+<table class="student-table">
+    <thead>
+        <tr>
+            <th>Module</th>
+            <th>Score</th>
+            <th>Completed</th>
+            <th>Last Accessed</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in progress_list %}
+        <tr>
+            <td style="font-weight:600;">{{ p.module.title|default:"—" }}</td>
+            <td>{{ p.score|default:"—" }}</td>
+            <td>
+                {% if p.completed %}
+                <span style="color:var(--accent-green);font-weight:700;">✓ Done</span>
+                {% else %}
+                <span style="color:var(--text-muted);">In Progress</span>
+                {% endif %}
+            </td>
+            <td style="color:var(--text-muted);">{{ p.last_accessed|date:"d M Y"|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted);">
+    No module progress recorded yet.
+</div>
+{% endif %}
+
+<div style="margin-top:32px;">
+    <a href="/school/classroom/{{ classroom.pk }}/" class="btn btn-outline">← Back to Classroom</a>
+</div>
+{% endblock %}

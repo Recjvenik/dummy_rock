@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Learning Paths — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.paths-header { margin-bottom: 40px; text-align: center; }
+.paths-header h1 { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 12px; }
+.paths-header p { color: var(--text-secondary); font-size: 17px; max-width: 560px; margin: 0 auto; line-height: 1.6; }
+.paths-grid { display: flex; flex-direction: column; gap: 32px; }
+.path-card {
+background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+padding: 0; overflow: hidden; transition: all 0.3s ease;
+}
+.path-card:hover { border-color: var(--border-glow); transform: translateY(-3px); box-shadow: 0 12px 40px
+rgba(0,0,0,0.4); }
+.path-top-bar { height: 4px; }
+.path-body { padding: 36px 40px; }
+.path-header { display: flex; align-items: center; gap: 24px; margin-bottom: 20px; }
+.path-icon-wrap {
+width: 72px; height: 72px; border-radius: 18px; display: flex; align-items: center;
+justify-content: center; font-size: 36px; background: rgba(255,255,255,0.04);
+border: 1px solid var(--border); flex-shrink: 0;
+}
+.path-info { flex: 1; }
+.path-grade-label {
+display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 12px;
+font-weight: 700; background: rgba(0,255,136,0.12); color: var(--accent-green);
+margin-bottom: 10px; letter-spacing: 0.05em;
+}
+.path-title { font-size: 28px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; letter-spacing:
+-0.02em; }
+.path-desc { font-size: 15px; color: var(--text-secondary); line-height: 1.6; }
+.path-stats-row {
+display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+margin: 24px 0; padding: 20px 0; border-top: 1px solid var(--border);
+border-bottom: 1px solid var(--border);
+}
+.path-stat-box { text-align: center; }
+.path-stat-num { font-size: 28px; font-weight: 800; color: var(--accent-orange); line-height: 1; }
+.path-stat-lbl { font-size: 12px; color: var(--text-muted); margin-top: 6px; font-weight: 500; }
+.path-modules-label {
+font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;
+letter-spacing: 0.08em; margin-bottom: 14px;
+}
+.path-modules-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+.path-mod-chip {
+display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px;
+border-radius: 10px; background: var(--bg-secondary); border: 1px solid var(--border);
+color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500;
+transition: all 0.2s; cursor: pointer;
+}
+.path-mod-chip:hover { border-color: var(--accent-green); color: var(--accent-green); background: rgba(0,255,136,0.04);
+transform: translateY(-1px); }
+.path-mod-chip .mod-icon { font-size: 18px; }
+.path-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.path-actions .btn { padding: 12px 28px; font-size: 14px; font-weight: 600; border-radius: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:8px;font-size:13px;color:var(--text-muted);">
+    <a href="/" style="color:inherit;text-decoration:none;">Home</a>
+    <span style="margin:0 8px">/</span>
+    <span style="color:var(--text-secondary)">Learning Paths</span>
+</div>
+
+<div class="paths-header">
+    <div style="font-size:48px;margin-bottom:16px;">🗺️</div>
+    <h1>Learning Paths</h1>
+    <p>Structured AI curriculum for every grade level. Pick your class and follow the guided path from foundations to
+        mastery.</p>
+</div>
+
+<div class="paths-grid">
+    {% for path in paths %}
+    <div class="path-card">
+        <div class="path-top-bar"
+            style="background: linear-gradient(90deg, {% cycle '#00ff88' '#ffd700' '#4d96ff' '#b15eff' '#ff8c00' %}, {% cycle '#4d96ff' '#ff8c00' '#b15eff' '#ff6bca' '#ffd700' %});">
+        </div>
+        <div class="path-body">
+            <div class="path-header">
+                <div class="path-icon-wrap">{{ path.icon }}</div>
+                <div class="path-info">
+                    <span class="path-grade-label">CLASS {{ path.grade }}</span>
+                    <div class="path-title">{{ path.title }}</div>
+                    <div class="path-desc">{{ path.description }}</div>
+                </div>
+            </div>
+
+            <div class="path-stats-row">
+                <div class="path-stat-box">
+                    <div class="path-stat-num">{{ path.modules.count }}</div>
+                    <div class="path-stat-lbl">Modules</div>
+                </div>
+                <div class="path-stat-box">
+                    <div class="path-stat-num">~{{ path.estimated_duration }}h</div>
+                    <div class="path-stat-lbl">Duration</div>
+                </div>
+                <div class="path-stat-box">
+                    <div class="path-stat-num">{{ path.modules.count|add:"2" }}+</div>
+                    <div class="path-stat-lbl">Quizzes</div>
+                </div>
+            </div>
+
+            <div class="path-modules-label">Modules in this path</div>
+            <div class="path-modules-list">
+                {% for module in path.modules.all %}
+                <a href="/learn/{{ module.slug }}/" class="path-mod-chip">
+                    <span class="mod-icon">{{ module.icon }}</span>
+                    {{ module.title }}
+                </a>
+                {% empty %}
+                <div style="color:var(--text-muted);font-size:14px;">Run seed commands to populate modules.</div>
+                {% endfor %}
+            </div>
+
+            <div class="path-actions">
+                {% with first_mod=path.modules.first %}
+                {% if first_mod %}
+                <a href="/learn/{{ first_mod.slug }}/" class="btn btn-primary">Start This Path →</a>
+                {% endif %}
+                {% endwith %}
+                <a href="/?grade={{ path.grade }}" class="btn btn-secondary">Browse Class {{ path.grade }} Modules</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:60px;color:var(--text-muted);">
+        <div style="font-size:56px;margin-bottom:20px;">🗺️</div>
+        <div style="font-size:20px;font-weight:700;margin-bottom:10px;">No Learning Paths Yet</div>
+        <div>Run <code
+                style="background:var(--bg-secondary);padding:4px 10px;border-radius:6px;">python manage.py seed_glossary</code>
+            to populate paths.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

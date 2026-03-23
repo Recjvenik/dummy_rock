@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}K-Means Clustering Lab — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.km-hero { margin-bottom: 48px; }
+.km-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.km-hero h1 span {
+background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.km-workspace {
+display: grid;
+grid-template-columns: 320px 1fr;
+gap: 32px;
+}
+
+.km-controls {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 28px;
+padding: 32px;
+height: fit-content;
+position: sticky;
+top: 40px;
+}
+
+.km-viewport {
+background: #09090b;
+border: 1px solid var(--border);
+border-radius: 32px;
+padding: 0;
+position: relative;
+overflow: hidden;
+box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
+}
+
+.km-canvas {
+width: 100%;
+height: 600px;
+display: block;
+}
+
+.km-toolbar {
+padding: 24px 40px;
+background: rgba(255,255,255,0.02);
+border-top: 1px solid var(--border);
+display: flex;
+align-items: center;
+gap: 16px;
+}
+
+.km-stat-strip {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 16px;
+margin-top: 32px;
+padding-top: 32px;
+border-top: 1px solid var(--border);
+}
+
+.stat-box { text-align: center; }
+.stat-v { font-size: 20px; font-weight: 800; }
+.stat-l { font-size: 9px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+
+@media (max-width: 1000px) {
+.km-workspace { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="km-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>K-Means Lab</span>
+    </div>
+    <h1>Geometric<br><span>Cluster Geometry</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Unsupervised learning in
+        motion. Witness how centroids find natural partitions in high-density data.</p>
+</div>
+
+<div class="km-workspace">
+    <!-- Configuration -->
+    <aside class="km-controls">
+        <div class="parameter-group">
+            <div class="param-header"><span class="param-label">Data Points</span><span class="param-value"
+                    id="val-n">80</span></div>
+            <input type="range" id="n-points" min="30" max="250" value="80" class="premium-slider"
+                oninput="document.getElementById('val-n').textContent=this.value">
+        </div>
+
+        <div class="parameter-group">
+            <div class="param-header"><span class="param-label">Centroids (K)</span><span class="param-value" id="val-k"
+                    style="color:var(--accent-green);">3</span></div>
+            <input type="range" id="n-clusters" min="2" max="10" value="3" class="premium-slider"
+                oninput="document.getElementById('val-k').textContent=this.value">
+        </div>
+
+        <div class="parameter-group">
+            <div class="param-header"><span class="param-label">Max Iterations</span><span class="param-value"
+                    id="val-iter">20</span></div>
+            <input type="range" id="max-iter" min="5" max="50" value="20" class="premium-slider"
+                oninput="document.getElementById('val-iter').textContent=this.value">
+        </div>
+
+        <button onclick="runKMeans()" class="btn btn-green"
+            style="width:100%; height:50px; border-radius:14px; font-weight:800; color:#000; margin-bottom:12px;">⚡
+            Execute Clustering</button>
+        <button onclick="randomizeData()" class="btn btn-secondary"
+            style="width:100%; height:50px; border-radius:14px; font-weight:800;">🔀 Reseed Universe</button>
+
+        <div class="km-stat-strip">
+            <div class="stat-box">
+                <div class="stat-v" id="stat-iters">0</div>
+                <div class="stat-l">Iterations</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-v" id="stat-inertia" style="color:var(--accent-blue);">0.0</div>
+                <div class="stat-l">Mass Variance</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Canvas -->
+    <main class="km-viewport">
+        <canvas id="km-canvas" class="km-canvas"></canvas>
+        <div class="km-toolbar">
+            <button onclick="prev()" id="btn-prev" disabled class="btn btn-secondary"
+                style="padding:8px 16px; font-size:12px;">Prev</button>
+            <button onclick="next()" id="btn-next" disabled class="btn btn-secondary"
+                style="padding:8px 16px; font-size:12px;">Next</button>
+            <button onclick="play()" id="btn-play" disabled class="btn btn-green"
+                style="padding:8px 24px; font-size:12px; color:#000; font-weight:800;">Play Animation</button>
+            <div id="frame-info"
+                style="margin-left:auto; font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">
+                Initialization Stage</div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const COLORS = ['#00ff88', '#4d96ff', '#ff8c00', '#ff6bca', '#ffd700', '#00e5ff', '#b15eff', '#ef5350', '#ffffff', '#aaaaaa'];
+    const canvas = document.getElementById('km-canvas');
+    const ctx = canvas.getContext('2d');
+    let simData = null, currentFrame = 0, timer = null, seed = 42;
+
+    function resize() {
+        canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+        canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', () => { resize(); if (simData) draw(currentFrame); });
+    resize();
+
+    async function runKMeans() {
+        const params = {
+            n_points: parseInt(document.getElementById('n-points').value),
+            n_clusters: parseInt(document.getElementById('n-clusters').value),
+            max_iterations: parseInt(document.getElementById('max-iter').value),
+            init_method: 'kmeans++',
+            seed: seed
+        };
+
+        const res = await fetch('/api/simulations/kmeans/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+        });
+        simData = await res.json();
+        currentFrame = 0;
+
+        document.getElementById('btn-prev').disabled = false;
+        document.getElementById('btn-next').disabled = false;
+        document.getElementById('btn-play').disabled = false;
+
+        draw(0);
+    }
+
+    function draw(idx) {
+        if (!simData) return;
+        const W = canvas.offsetWidth, H = canvas.offsetHeight;
+        const frame = simData.iterations[idx];
+        ctx.clearRect(0, 0, W, H);
+
+        const mX = (v) => 60 + v * (W - 120);
+        const mY = (v) => 60 + (1 - v) * (H - 120);
+
+        // Connections (trails)
+        ctx.lineWidth = 1;
+        simData.points.forEach((p, i) => {
+            const cIdx = frame.assignments[i];
+            const centroid = frame.centroids[cIdx];
+            ctx.beginPath();
+            ctx.moveTo(mX(p.x), mY(p.y));
+            ctx.lineTo(mX(centroid.x), mY(centroid.y));
+            ctx.strokeStyle = COLORS[cIdx] + '11';
+            ctx.stroke();
+        });
+
+        // Points
+        simData.points.forEach((p, i) => {
+            const cIdx = frame.assignments[i];
+            ctx.beginPath();
+            ctx.arc(mX(p.x), mY(p.y), 4, 0, Math.PI * 2);
+            ctx.fillStyle = COLORS[cIdx] + 'cc';
+            ctx.fill();
+        });
+
+        // Centroids
+        frame.centroids.forEach(c => {
+            const cx = mX(c.x), cy = mY(c.y);
+            // Glow
+            const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30);
+            g.addColorStop(0, COLORS[c.cluster_id] + '33');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g;
+            ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI * 2); ctx.fill();
+
+            // Crosshair
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - 10, cy); ctx.lineTo(cx + 10, cy);
+            ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy + 10);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+            ctx.fillStyle = COLORS[c.cluster_id];
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        document.getElementById('stat-iters').textContent = idx + 1;
+        document.getElementById('stat-inertia').textContent = frame.inertia.toFixed(2);
+        document.getElementById('frame-info').textContent = `Iteration ${idx + 1} / ${simData.iterations.length}`;
+    }
+
+    function next() { currentFrame = Math.min(currentFrame + 1, simData.iterations.length - 1); draw(currentFrame); }
+    function prev() { currentFrame = Math.max(currentFrame - 1, 0); draw(currentFrame); }
+    function play() {
+        if (timer) { clearInterval(timer); timer = null; document.getElementById('btn-play').textContent = 'Play Animation'; return; }
+        currentFrame = 0;
+        document.getElementById('btn-play').textContent = 'Pause Animation';
+        timer = setInterval(() => {
+            draw(currentFrame);
+            currentFrame++;
+            if (currentFrame >= simData.iterations.length) {
+                clearInterval(timer); timer = null;
+                document.getElementById('btn-play').textContent = 'Play Animation';
+            }
+        }, 500);
+    }
+    function randomizeData() { seed = Math.floor(Math.random() * 9999); runKMeans(); }
+
+    runKMeans();
+</script>
+{% endblock %}

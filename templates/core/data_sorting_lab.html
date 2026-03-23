@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block title %}Data Sorting Lab — AI Lab{% endblock %}
+
+{% block extra_css %}
+<style>
+.sort-hero { margin-bottom: 48px; }
+.sort-hero h1 {
+font-size: 56px;
+font-weight: 800;
+letter-spacing: -0.04em;
+margin-top: 16px;
+}
+.sort-hero h1 span {
+background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.sort-container-layout {
+display: grid;
+grid-template-columns: 320px 1fr;
+gap: 32px;
+}
+
+.sort-controls {
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: 28px;
+padding: 32px;
+height: fit-content;
+position: sticky;
+top: 40px;
+}
+
+.sort-viewport {
+background: #09090b;
+border: 1px solid var(--border);
+border-radius: 32px;
+padding: 60px;
+display: flex;
+flex-direction: column;
+position: relative;
+overflow: hidden;
+box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
+min-height: 500px;
+}
+
+.array-viz {
+display: flex;
+align-items: flex-end;
+gap: 12px;
+height: 300px;
+margin: auto 0;
+padding: 0 40px;
+}
+
+.sort-bar {
+flex: 1;
+background: var(--bg-secondary);
+border: 1px solid var(--border);
+border-radius: 12px 12px 4px 4px;
+position: relative;
+transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+display: flex;
+justify-content: center;
+}
+
+.sort-bar::before {
+content: "";
+position: absolute;
+top: 0; left: 0; right: 0; bottom: 0;
+background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent);
+border-radius: inherit;
+}
+
+.sort-bar.active {
+background: var(--accent-blue);
+border-color: var(--accent-cyan);
+transform: scaleX(1.1) translateY(-10px);
+box-shadow: 0 10px 30px rgba(77, 150, 255, 0.3);
+}
+
+.sort-bar.swapping {
+background: var(--accent-orange);
+border-color: var(--accent-red);
+}
+
+.sort-bar.final {
+background: var(--accent-green);
+border-color: rgba(0,255,136,0.4);
+}
+
+.bar-val-label {
+position: absolute;
+bottom: -30px;
+font-family: 'JetBrains Mono', monospace;
+font-size: 13px;
+font-weight: 800;
+color: var(--text-secondary);
+}
+
+.sort-metrics {
+margin-top: 48px;
+display: flex;
+gap: 16px;
+background: rgba(255,255,255,0.02);
+border: 1px solid var(--border);
+border-radius: 20px;
+padding: 20px 32px;
+width: fit-content;
+align-self: center;
+}
+
+.met-unit { display: flex; flex-direction: column; align-items: center; min-width: 100px; }
+.met-val { font-size: 24px; font-weight: 800; line-height: 1; }
+.met-lbl { font-size: 9px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; }
+
+@media (max-width: 1000px) {
+.sort-container-layout { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sort-hero">
+    <div class="breadcrumb" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        <a href="/" style="color:inherit; text-decoration:none;">AI Lab</a>
+        <span style="margin:0 8px">/</span>
+        <span>Data Sorting Lab</span>
+    </div>
+    <h1>Algorithmic<br><span>Precision Tuning</span></h1>
+    <p style="color:var(--text-secondary); font-size:20px; margin-top:16px; max-width:600px;">Optimization at scale.
+        Visualize the entropy reduction as algorithms organize unstructured information blocks.</p>
+</div>
+
+<div class="sort-container-layout">
+    <!-- Configuration -->
+    <aside class="sort-controls">
+        <label class="param-label">Sorting Strategy</label>
+        <select id="algo-select" class="nn-input-field" style="margin-top:12px;">
+            <option value="bubble">Selection Strategy (Bubble)</option>
+            <option value="selection">Min-Max Strategy (Selection)</option>
+        </select>
+
+        <div class="parameter-group">
+            <div class="param-header"><span class="param-label">Complexity Scale</span><span class="param-value"
+                    id="val-size">10</span></div>
+            <input type="range" id="data-size" min="5" max="25" value="10" class="premium-slider"
+                oninput="document.getElementById('val-size').textContent=this.value; generate()">
+        </div>
+
+        <div class="parameter-group">
+            <div class="param-header"><span class="param-label">Operation Speed</span><span class="param-value"
+                    id="val-speed">Normal</span></div>
+            <input type="range" id="speed" min="50" max="600" value="300" class="premium-slider"
+                oninput="document.getElementById('val-speed').textContent=this.value > 400 ? 'Slow' : this.value > 150 ? 'Normal' : 'Turbo'">
+        </div>
+
+        <button onclick="run()" id="run-btn" class="btn btn-blue"
+            style="width:100%; height:50px; border-radius:14px; font-weight:800; background:var(--accent-blue); color:#fff; border:none; margin-bottom:12px;">⚡
+            Execute Sort</button>
+        <button onclick="generate()" class="btn btn-secondary"
+            style="width:100%; height:50px; border-radius:14px; font-weight:800; border:1px solid var(--border);">🔀
+            Reseed Array</button>
+    </aside>
+
+    <!-- Visualizer -->
+    <main class="sort-viewport">
+        <div id="array-viz" class="array-viz"></div>
+
+        <div class="sort-metrics">
+            <div class="met-unit"><span id="met-steps" class="met-val">0</span><span class="met-lbl">Ops
+                    Performed</span></div>
+            <div class="met-unit"><span class="met-val" style="color:var(--accent-blue);"
+                    id="met-progress">0%</span><span class="met-lbl">Convergence</span></div>
+            <div class="met-unit"><span class="met-val" style="color:var(--accent-green);"
+                    id="met-status">Ready</span><span class="met-lbl">Process State</span></div>
+        </div>
+
+        <div id="action-tip"
+            style="position:absolute; bottom:20px; left:0; right:0; text-align:center; color:var(--text-muted); font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em;">
+            Awaiting Command Initiation
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let data = [];
+    let running = false;
+
+    function generate() {
+        if (running) return;
+        const size = parseInt(document.getElementById('data-size').value);
+        data = Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 10);
+        render(data);
+        document.getElementById('met-steps').textContent = '0';
+        document.getElementById('met-progress').textContent = '0%';
+        document.getElementById('met-status').textContent = 'Ready';
+        document.getElementById('action-tip').textContent = 'Buffer Initialized';
+    }
+
+    function render(arr, active = [], swapping = false) {
+        const container = document.getElementById('array-viz');
+        container.innerHTML = '';
+        const max = Math.max(...arr, 1);
+
+        arr.forEach((v, i) => {
+            const bar = document.createElement('div');
+            bar.className = 'sort-bar';
+            if (active.includes(i)) {
+                bar.classList.add('active');
+                if (swapping) bar.classList.add('swapping');
+            }
+            bar.style.height = `${(v / max) * 100}%`;
+
+            const label = document.createElement('div');
+            label.className = 'bar-val-label';
+            label.textContent = v;
+
+            bar.appendChild(label);
+            container.appendChild(bar);
+        });
+    }
+
+    async function run() {
+        if (running) return;
+        running = true;
+        const btn = document.getElementById('run-btn');
+        btn.disabled = true; btn.textContent = 'Executing...';
+
+        const algo = document.getElementById('algo-select').value;
+        const res = await fetch('/api/simulations/data-sorting/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ algorithm: algo, data: data })
+        });
+        const d = await res.json();
+        const steps = d.steps;
+
+        for (let i = 0; i < steps.length; i++) {
+            const step = steps[i];
+            render(step.array, step.comparing, step.swapped);
+            document.getElementById('met-steps').textContent = i + 1;
+            document.getElementById('met-progress').textContent = Math.round(((i + 1) / steps.length) * 100) + '%';
+            document.getElementById('met-status').textContent = 'Tuning';
+            document.getElementById('action-tip').textContent = step.action;
+            await new Promise(r => setTimeout(r, 650 - parseInt(document.getElementById('speed').value)));
+        }
+
+        document.querySelectorAll('.sort-bar').forEach(b => b.classList.add('final'));
+        document.getElementById('met-status').textContent = 'Optimal';
+        document.getElementById('action-tip').textContent = 'Entropy Minimized';
+
+        running = false;
+        btn.disabled = false; btn.textContent = '⚡ Execute Sort';
+    }
+
+    generate();
+</script>
+{% endblock %}
