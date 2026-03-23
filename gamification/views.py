@@ -1,13 +1,13 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
 from .models import UserXP, UserBadge, Badge, DailyStreak, XPEvent
 from .signals import award_xp, check_and_award_badge
 
 
 class LeaderboardView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         top_users = UserXP.objects.select_related('user').order_by('-total_xp')[:20]

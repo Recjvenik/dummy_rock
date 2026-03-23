@@ -1,13 +1,13 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from .models import Discussion, DiscussionReply
 from .serializers import DiscussionSerializer, DiscussionReplySerializer
 
 
 class ModuleDiscussionsView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, module_slug):
         discussions = Discussion.objects.filter(
@@ -36,7 +36,7 @@ class ModuleDiscussionsView(APIView):
 
 
 class DiscussionDetailView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         try:

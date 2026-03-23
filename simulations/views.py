@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from .engine import (
     simulate_neural_network, simulate_gradient_descent,
     simulate_activation_functions, simulate_bias_variance,
@@ -15,7 +15,7 @@ from .models import SimulationLog
 
 
 class NeuralNetworkSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         params = request.data
@@ -27,7 +27,7 @@ class NeuralNetworkSimView(APIView):
 
 
 class GradientDescentSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         params = request.data
@@ -37,7 +37,7 @@ class GradientDescentSimView(APIView):
 
 
 class ActivationFunctionSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         result = simulate_activation_functions({})
@@ -45,7 +45,7 @@ class ActivationFunctionSimView(APIView):
 
 
 class BiasVarianceSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         params = request.data
@@ -55,7 +55,7 @@ class BiasVarianceSimView(APIView):
 
 
 class LLMParamsSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         params = request.data
@@ -68,7 +68,7 @@ class LLMParamsSimView(APIView):
 
 
 class RAGPipelineSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         params = request.data
@@ -81,7 +81,7 @@ class RAGPipelineSimView(APIView):
 
 
 class AgentFlowSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         params = request.data
@@ -94,7 +94,7 @@ class AgentFlowSimView(APIView):
 
 
 class TokenizerSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         params = request.data
@@ -104,7 +104,7 @@ class TokenizerSimView(APIView):
 
 
 class LogicGatesSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         result = simulate_logic_gates(request.data)
@@ -113,7 +113,7 @@ class LogicGatesSimView(APIView):
 
 
 class DataSortingSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         result = simulate_data_sorting(request.data)
@@ -122,7 +122,7 @@ class DataSortingSimView(APIView):
 
 
 class PatternRecognitionSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         result = simulate_pattern_recognition(request.data)
@@ -131,7 +131,7 @@ class PatternRecognitionSimView(APIView):
 
 
 class KMeansSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         params = request.data
@@ -141,7 +141,7 @@ class KMeansSimView(APIView):
 
 
 class DecisionTreeSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         params = request.data
@@ -151,7 +151,7 @@ class DecisionTreeSimView(APIView):
 
 
 class AttentionSimView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         params = request.data
@@ -161,7 +161,7 @@ class AttentionSimView(APIView):
 
 
 class SimulationLogsView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         sim_type = request.query_params.get('type', None)

@@ -2,6 +2,7 @@ import json
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.core.cache import cache
+from django.contrib.auth.decorators import login_required
 from modules.models import Module, Concept, GlossaryTerm, LearningPath, PracticalExercise
 
 
@@ -147,6 +148,7 @@ CHAT_SUGGESTIONS = [
 ]
 
 
+@login_required
 def home(request):
     grade_filter = request.GET.get('grade', '')
     if grade_filter and grade_filter != 'all':
@@ -250,6 +252,7 @@ def home(request):
     return render(request, 'core/home.html', context)
 
 
+@login_required
 def module_learn(request, slug):
     module = get_object_or_404(Module, slug=slug, is_published=True)
     sections = module.sections.all().order_by('order')
@@ -280,6 +283,7 @@ def module_learn(request, slug):
     })
 
 
+@login_required
 def playground(request):
     labs = [
         {'url': '/neural-network/', 'icon': '⚡', 'name': 'Neural Network Lab',
@@ -298,22 +302,27 @@ def playground(request):
     return render(request, 'core/playground.html', {'labs_list': labs})
 
 
+@login_required
 def rag_visualizer(request):
     return render(request, 'core/rag_visualizer.html')
 
 
+@login_required
 def agent_visualizer(request):
     return render(request, 'core/agent_visualizer.html')
 
 
+@login_required
 def neural_network_lab(request):
     return render(request, 'core/neural_network_lab.html')
 
 
+@login_required
 def llm_params_lab(request):
     return render(request, 'core/llm_params_lab.html')
 
 
+@login_required
 def ai_chat(request):
     topic = request.GET.get('topic', 'default')
     return render(request, 'core/ai_chat.html', {
@@ -322,6 +331,7 @@ def ai_chat(request):
     })
 
 
+@login_required
 def glossary(request):
     search_q = request.GET.get('q', '')
     letter = request.GET.get('letter', '')
@@ -352,6 +362,7 @@ def glossary(request):
     })
 
 
+@login_required
 def learning_paths(request):
     paths = LearningPath.objects.all().prefetch_related('modules')
     return render(request, 'core/learning_paths.html', {
@@ -359,6 +370,7 @@ def learning_paths(request):
     })
 
 
+@login_required
 def concept_explorer(request):
     concepts = Concept.objects.prefetch_related('modules').all()
     modules = Module.objects.filter(is_published=True).order_by('order')
@@ -380,22 +392,27 @@ def concept_explorer(request):
     })
 
 
+@login_required
 def kmeans_lab(request):
     return render(request, 'core/kmeans_lab.html')
 
 
+@login_required
 def decision_tree_lab(request):
     return render(request, 'core/decision_tree_lab.html')
 
 
+@login_required
 def attention_lab(request):
     return render(request, 'core/attention_lab.html')
 
 
+@login_required
 def leaderboard(request):
     return render(request, 'gamification/leaderboard.html')
 
 
+@login_required
 def badges(request):
     return render(request, 'gamification/badges.html')
 
@@ -404,18 +421,22 @@ def onboarding(request):
     return render(request, 'core/onboarding.html')
 
 
+@login_required
 def logic_gates_lab(request):
     return render(request, 'core/logic_gates_lab.html')
 
 
+@login_required
 def data_sorting_lab(request):
     return render(request, 'core/data_sorting_lab.html')
 
 
+@login_required
 def pattern_recognition_lab(request):
     return render(request, 'core/pattern_recognition_lab.html')
 
 
+@login_required
 def practice_zone(request):
     grade = request.GET.get('grade', '')
     difficulty = request.GET.get('difficulty', '')
@@ -441,5 +462,6 @@ def ui_showcase(request):
     return render(request, 'core/ui_showcase.html')
 
 
+@login_required
 def python_editor(request):
     return render(request, 'core/python_editor.html')

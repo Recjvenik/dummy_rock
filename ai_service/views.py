@@ -3,14 +3,14 @@ import re
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from .bedrock import get_bedrock_client, SYSTEM_PROMPTS, estimate_cost
 from . import codemunch
 
 
 class AIChatView(APIView):
     """REST endpoint for non-streaming AI chat (for quick queries)"""
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         message = request.data.get('message', '')
@@ -45,7 +45,7 @@ class AIChatView(APIView):
 
 class ExplainConceptView(APIView):
     """Ask AI to explain a specific AI/ML concept"""
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         concept = request.data.get('concept', '')
@@ -84,7 +84,7 @@ Format with clear sections. Be concise but thorough."""
 
 class GenerateQuizView(APIView):
     """Generate quiz questions on a topic using AI"""
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         topic = request.data.get('topic', 'machine learning')
@@ -122,7 +122,7 @@ Return ONLY valid JSON array:
 
 class CodeReviewView(APIView):
     """AI-powered code review for ML/AI code"""
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         code = request.data.get('code', '')
@@ -164,7 +164,7 @@ class CodeExploreView(APIView):
     Searches the AI Lab codebase with 80-99% fewer tokens than reading full files,
     then uses Bedrock to explain/answer questions about what's found.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         query = request.data.get('query', '').strip()
